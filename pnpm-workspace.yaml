@@ -1,2 +1,5 @@
+ignoredBuiltDependencies:
+  - husky
+
 onlyBuiltDependencies:
   - esbuild
