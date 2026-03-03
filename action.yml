@@ -21,6 +21,8 @@ inputs:
     description: 'Sort order: desc, asc'
   hide-files:
     description: 'Glob pattern to hide files with'
+  ignore-threshold:
+    description: 'Minimum byte difference to consider a file as changed (default: 100)'
 runs:
   using: 'node12'
   main: 'dist/index.js'
