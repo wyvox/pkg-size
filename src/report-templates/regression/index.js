@@ -34,11 +34,13 @@ function generateComment({
 	hideFiles,
 	unchangedFiles,
 	displaySize,
+	ignoreThreshold,
 }) {
 	const regressionData = comparePackages(headPkgData, basePkgData, {
 		sortBy,
 		sortOrder,
 		hideFiles,
+		ignoreThreshold,
 	});
 
 	setOutput('regressionData', regressionData);

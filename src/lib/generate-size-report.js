@@ -14,6 +14,7 @@ async function generateSizeReport({
 	sortBy,
 	sortOrder,
 	displaySize,
+	ignoreThreshold,
 }) {
 	log.startGroup('Build HEAD');
 	const headPkgData = await buildRef({
@@ -65,6 +66,7 @@ async function generateSizeReport({
 			sortOrder,
 			hideFiles,
 			unchangedFiles,
+			ignoreThreshold,
 		});
 	}
 

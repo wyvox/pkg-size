@@ -57,6 +57,7 @@ function comparePackages(head, base, {
 	sortBy,
 	sortOrder,
 	hideFiles,
+	ignoreThreshold = 100,
 } = {}) {
 	const fileMap = {};
 	processPkgFiles(fileMap, 'head', head);
@@ -69,7 +70,7 @@ function comparePackages(head, base, {
 	const [hidden, files] = partionHidden(hideFiles, allFiles);
 	const [unchanged, changed] = partition(
 		files,
-		file => (file.diff && file.diff.size.delta === 0),
+		file => (file.diff && file.diff.size && Math.abs(file.diff.size.delta) < ignoreThreshold),
 	);
 
 	return {
