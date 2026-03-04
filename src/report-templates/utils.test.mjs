@@ -34,9 +34,23 @@ test('createStripHash leaves non-hashed paths unchanged', () => {
 });
 
 test('createStripHash uses the default-like pattern covering common build tool formats', () => {
-	const normalize = createStripHash('[.-]([0-9a-zA-Z]{8,})[.-]');
+	const normalize = createStripHash('[.-]([0-9a-zA-Z_-]{8,})[.-]');
 	// Vite-style: name-HASH.ext
 	assert.equal(normalize('dist/index-BcaWxUPr.js'), normalize('dist/index-XyZ12345.js'));
 	// Rollup/webpack-style: name.HASH.ext
 	assert.equal(normalize('dist/vendor.abcdef12.js'), normalize('dist/vendor.98765432.js'));
+});
+
+test('createStripHash with default pattern handles Vite/Rollup hashes containing hyphens and underscores', () => {
+	const normalize = createStripHash('[.-]([0-9a-zA-Z_-]{8,})[.-]');
+	// Hashes with hyphen in the middle (e.g. ember.js shared-chunks)
+	assert.equal(normalize('dist/packages/shared-chunks/args-proxy-CncEK3-N.js'), normalize('dist/packages/shared-chunks/args-proxy-DrCnQAi8.js'));
+	assert.equal(normalize('dist/packages/shared-chunks/iterable-MTNm-Xdt.js'), normalize('dist/packages/shared-chunks/iterable-DBaSQKHG.js'));
+	assert.equal(normalize('dist/packages/shared-chunks/helpers-UmfY0-e9.js'), normalize('dist/packages/shared-chunks/helpers-u4pqWesp.js'));
+	// Hashes with trailing hyphen
+	assert.equal(normalize('dist/packages/shared-chunks/array-D7brxUO-.js'), normalize('dist/packages/shared-chunks/array-DmOImvwN.js'));
+	// Hashes with multiple hyphens and underscores
+	assert.equal(normalize('dist/packages/shared-chunks/constants-D-GnD_u-.js'), normalize('dist/packages/shared-chunks/constants-DXKbeJLq.js'));
+	// Hashes starting with underscore
+	assert.equal(normalize('dist/packages/shared-chunks/property_set-_6-u0QnO.js'), normalize('dist/packages/shared-chunks/property_set-CcL99gz3.js'));
 });
