@@ -26,6 +26,8 @@ const directionSymbol = (value) => {
 
 const formatDelta = ({ delta, percent }) => (delta ? (percent + directionSymbol(delta)) : '');
 
+const AUTO_COLLAPSE_THRESHOLD = 20;
+
 function generateComment({
 	headPkgData,
 	basePkgData,
@@ -35,6 +37,7 @@ function generateComment({
 	unchangedFiles,
 	displaySize,
 	ignoreThreshold,
+	autoCollapse,
 	stripHash,
 }) {
 	const regressionData = comparePackages(headPkgData, basePkgData, {
@@ -51,23 +54,25 @@ function generateComment({
 	const displaySizes = parseDisplaySize(displaySize);
 	const sizeHeadingLabel = getSizeLabels(displaySizes);
 
-	const table = markdownTable([
-		['File', `Before${sizeHeadingLabel}`, `After${sizeHeadingLabel}`],
-		...[
-			...changed,
-			...(unchangedFiles === 'show' ? unchanged : []),
-		].map(file => [
-			file.label,
-			file.base && file.base.size
-				? listSizes(displaySizes, p => c(byteSize(file.base[p])))
-				: '—',
-			file.head && file.head.size
-				? listSizes(
-					displaySizes,
-					p => (file.base && file.base[p] ? sup(formatDelta(file.diff[p])) : '') + c(byteSize(file.head[p])),
-				)
-				: '—',
-		]),
+	const fileRows = [
+		...changed,
+		...(unchangedFiles === 'show' ? unchanged : []),
+	];
+
+	const mapFileRow = file => [
+		file.label,
+		file.base && file.base.size
+			? listSizes(displaySizes, p => c(byteSize(file.base[p])))
+			: '—',
+		file.head && file.head.size
+			? listSizes(
+				displaySizes,
+				p => (file.base && file.base[p] ? sup(formatDelta(file.diff[p])) : '') + c(byteSize(file.head[p])),
+			)
+			: '—',
+	];
+
+	const totalRows = [
 		[
 			`${strong('Total')} ${(unchangedFiles === 'show' ? '' : sub('_(Includes all files)_'))}`,
 			listSizes(displaySizes, p => c(byteSize(regressionData.base[p]))),
@@ -84,9 +89,38 @@ function generateComment({
 				+ c(byteSize(regressionData.head.tarballSize))
 			),
 		],
-	], {
-		align: ['', 'r', 'r'],
-	});
+	];
+
+	const shouldAutoCollapse = autoCollapse && fileRows.length > AUTO_COLLAPSE_THRESHOLD;
+
+	let table;
+	let autoCollapseSection = '';
+
+	if (shouldAutoCollapse) {
+		table = markdownTable([
+			['File', `Before${sizeHeadingLabel}`, `After${sizeHeadingLabel}`],
+			...totalRows,
+		], {
+			align: ['', 'r', 'r'],
+		});
+
+		const filesTable = markdownTable([
+			['File', `Before${sizeHeadingLabel}`, `After${sizeHeadingLabel}`],
+			...fileRows.map(mapFileRow),
+		], {
+			align: ['', 'r', 'r'],
+		});
+
+		autoCollapseSection = `<details><summary>Show files (${fileRows.length} files)</summary>\n\n${filesTable}\n</details>`;
+	} else {
+		table = markdownTable([
+			['File', `Before${sizeHeadingLabel}`, `After${sizeHeadingLabel}`],
+			...fileRows.map(mapFileRow),
+			...totalRows,
+		], {
+			align: ['', 'r', 'r'],
+		});
+	}
 
 	let unchangedTable = '';
 	if (unchangedFiles === 'collapse' && unchanged.length > 0) {
@@ -130,6 +164,8 @@ function generateComment({
 	### 📊 Package size report&nbsp;&nbsp;&nbsp;<kbd>${formatDelta(regressionData.diff.size) || 'No changes'}</kbd>
 
 	${table}
+
+	${autoCollapseSection}
 
 	${unchangedTable}
 

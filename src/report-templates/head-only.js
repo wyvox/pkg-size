@@ -10,12 +10,15 @@ import {
 	sortFiles,
 } from './utils.js';
 
+const AUTO_COLLAPSE_THRESHOLD = 20;
+
 function headOnly({
 	headPkgData,
 	hideFiles,
 	displaySize,
 	sortBy,
 	sortOrder,
+	autoCollapse,
 }) {
 	const displaySizes = parseDisplaySize(displaySize);
 	const sizeHeadingLabel = getSizeLabels(displaySizes);
@@ -23,12 +26,12 @@ function headOnly({
 	sortFiles(headPkgData.files, sortBy, sortOrder);
 	const [hidden, files] = partionHidden(hideFiles, headPkgData.files);
 
-	const table = markdownTable([
-		['File', `Size${sizeHeadingLabel}`],
-		...files.map(file => [
-			file.label,
-			listSizes(displaySizes, p => c(byteSize(file[p]))),
-		]),
+	const mapFileRow = file => [
+		file.label,
+		listSizes(displaySizes, p => c(byteSize(file[p]))),
+	];
+
+	const totalRows = [
 		[
 			strong('Total'),
 			listSizes(displaySizes, p => c(byteSize(headPkgData[p]))),
@@ -37,10 +40,38 @@ function headOnly({
 			strong('Tarball size'),
 			c(byteSize(headPkgData.tarballSize)),
 		],
+	];
 
-	], {
-		align: ['', 'r'],
-	});
+	const shouldAutoCollapse = autoCollapse && files.length > AUTO_COLLAPSE_THRESHOLD;
+
+	let table;
+	let autoCollapseSection = '';
+
+	if (shouldAutoCollapse) {
+		table = markdownTable([
+			['File', `Size${sizeHeadingLabel}`],
+			...totalRows,
+		], {
+			align: ['', 'r'],
+		});
+
+		const filesTable = markdownTable([
+			['File', `Size${sizeHeadingLabel}`],
+			...files.map(mapFileRow),
+		], {
+			align: ['', 'r'],
+		});
+
+		autoCollapseSection = `<details><summary>Show files (${files.length} files)</summary>\n\n${filesTable}\n</details>`;
+	} else {
+		table = markdownTable([
+			['File', `Size${sizeHeadingLabel}`],
+			...files.map(mapFileRow),
+			...totalRows,
+		], {
+			align: ['', 'r'],
+		});
+	}
 
 	let hiddenTable = '';
 	if (hidden.length > 0) {
@@ -61,6 +92,8 @@ function headOnly({
 	### 📊 Package size report
 
 	${table}
+
+	${autoCollapseSection}
 
 	${hiddenTable}
 	`;

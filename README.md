@@ -322,6 +322,19 @@ To use a custom pattern for a specific build tool:
 strip-hash: '\.([0-9a-f]{8})\.'
 ```
 
+### auto-collapse
+Default: `true`
+
+Possible values: `true`, `false`
+
+When `true`, file rows are automatically collapsed into a `<details>` section when there are more than 20 files. The **Total** and **Tarball size** rows are always shown outside the collapsible section.
+
+To disable auto-collapsing:
+
+```yml
+auto-collapse: false
+```
+
 ## 💁‍♀️ FAQ
 
 ### Can I use this for non-published projects?
