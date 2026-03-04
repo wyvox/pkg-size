@@ -15,6 +15,7 @@ async function generateSizeReport({
 	sortOrder,
 	displaySize,
 	ignoreThreshold,
+	autoCollapse,
 	stripHash,
 }) {
 	log.startGroup('Build HEAD');
@@ -33,6 +34,7 @@ async function generateSizeReport({
 				sortBy,
 				sortOrder,
 				hideFiles,
+				autoCollapse,
 			});
 		}
 		return false;
@@ -68,6 +70,7 @@ async function generateSizeReport({
 			hideFiles,
 			unchangedFiles,
 			ignoreThreshold,
+			autoCollapse,
 			stripHash,
 		});
 	}

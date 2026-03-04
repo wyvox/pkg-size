@@ -25,6 +25,9 @@ inputs:
     description: 'Minimum byte difference to consider a file as changed (default: 100)'
   strip-hash:
     description: 'Regular expression to strip hashes from file names for comparison. Files that differ only in their hash will be compared as the same file. Set to "false" to disable. Default matches common build tool hash patterns.'
+  auto-collapse:
+    description: 'Automatically collapse file rows into a <details> section when there are more than 20 files: true, false'
+    default: 'true'
 runs:
   using: 'node20'
   main: 'dist/index.js'
