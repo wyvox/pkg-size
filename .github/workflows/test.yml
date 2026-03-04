@@ -48,4 +48,4 @@ jobs:
       - name: Build
         run: pnpm run build
       - name: Assert no git diff
-        uses: wyvox/action-no-git-diff@v2
+        uses: wyvox/action-no-git-diff@v1
