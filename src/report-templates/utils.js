@@ -9,6 +9,31 @@ function partionHidden(hideFilesGlob, files) {
 	return partition(files, file => hideFilesPtrn.test(file.path));
 }
 
+/**
+ * Create a function that strips hashes from file paths for comparison purposes.
+ * @param {string} [regex] - Regular expression pattern to match hashes
+ * @returns {((filePath: string) => string) | undefined}
+ */
+function createStripHash(regex) {
+	if (!regex) {
+		return undefined;
+	}
+	const pattern = new RegExp(regex);
+	return function (filePath) {
+		return filePath.replace(pattern, (str, ...hashes) => {
+			hashes = hashes.slice(0, -2).filter(c => c != null);
+			if (hashes.length) {
+				for (let i = 0; i < hashes.length; i++) {
+					const hash = hashes[i] || '';
+					str = str.replace(hash, '*'.repeat(hash.length));
+				}
+				return str;
+			}
+			return '';
+		});
+	};
+}
+
 function getSizeLabels(displaySizes) {
 	if (displaySizes.length === 1 && displaySizes[0].property === 'size') {
 		return '';
@@ -56,4 +81,5 @@ export {
 	parseDisplaySize,
 	listSizes,
 	sortFiles,
+	createStripHash,
 };
