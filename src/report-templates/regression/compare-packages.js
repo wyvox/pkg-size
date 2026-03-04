@@ -2,6 +2,7 @@ import { partition, round } from 'lodash-es';
 import {
 	partionHidden,
 	sortFiles,
+	createStripHash,
 } from '../utils.js';
 
 const percent = (fraction) => {
@@ -35,16 +36,17 @@ function calculateDiff(head, base) {
 	};
 }
 
-function processPkgFiles(fileMap, type, pkgData) {
+function processPkgFiles(fileMap, type, pkgData, normalizeFilePath) {
 	for (const file of pkgData.files) {
-		if (!fileMap[file.path]) {
-			fileMap[file.path] = {
+		const key = normalizeFilePath ? normalizeFilePath(file.path) : file.path;
+		if (!fileMap[key]) {
+			fileMap[key] = {
 				path: file.path,
 				label: file.label,
 			};
 		}
 
-		const entry = fileMap[file.path];
+		const entry = fileMap[key];
 		entry[type] = file;
 
 		if (entry.head && entry.base) {
@@ -58,10 +60,12 @@ function comparePackages(head, base, {
 	sortOrder,
 	hideFiles,
 	ignoreThreshold = 100,
+	stripHash,
 } = {}) {
 	const fileMap = {};
-	processPkgFiles(fileMap, 'head', head);
-	processPkgFiles(fileMap, 'base', base);
+	const normalizeFilePath = createStripHash(stripHash);
+	processPkgFiles(fileMap, 'head', head, normalizeFilePath);
+	processPkgFiles(fileMap, 'base', base, normalizeFilePath);
 
 	const allFiles = Object.values(fileMap);
 
