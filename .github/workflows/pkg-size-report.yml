@@ -2,6 +2,8 @@ name: Package Size Report
 on:
   pull_request:
     branches: [ develop, master, next, next-major, beta, alpha ]
+permissions:
+  pull-requests: write
 jobs:
   pkg-size-report:
     name: Package Size report
