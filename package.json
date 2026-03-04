@@ -26,11 +26,6 @@
 		"build": "rollup -c && :",
 		"lint": "eslint ."
 	},
-	"husky": {
-		"hooks": {
-			"pre-commit": "lint-staged"
-		}
-	},
 	"lint-staged": {
 		"src/**/*.js": [
 			"eslint",
@@ -39,42 +34,40 @@
 		]
 	},
 	"devDependencies": {
-		"@actions/cache": "^1.0.7",
-		"@actions/core": "^1.11.1",
-		"@actions/exec": "^1.1.0",
-		"@actions/github": "^4.0.0",
-		"@actions/io": "^1.1.1",
-		"@pvtnbr/eslint-config-base": "^0.1.19",
-		"@rollup/plugin-commonjs": "^17.1.0",
+		"@actions/cache": "^6.0.0",
+		"@actions/core": "^3.0.0",
+		"@actions/exec": "^3.0.0",
+		"@actions/github": "^9.0.0",
+		"@actions/io": "^3.0.2",
+		"@rollup/plugin-commonjs": "^29.0.0",
 		"@rollup/plugin-json": "^6.1.0",
-		"@rollup/plugin-node-resolve": "^11.2.1",
-		"builtin-modules": "^3.1.0",
-		"byte-size": "^7.0.1",
-		"conventional-changelog-conventionalcommits": "^4.6.0",
-		"esbuild": "^0.12.20",
-		"eslint": "^7.32.0",
+		"@rollup/plugin-node-resolve": "^16.0.3",
+		"builtin-modules": "^5.0.0",
+		"byte-size": "^9.0.1",
+		"conventional-changelog-conventionalcommits": "^9.2.0",
+		"esbuild": "^0.27.3",
+		"eslint": "^8.57.1",
 		"glob-to-regexp": "^0.4.1",
-		"husky": "^4.3.8",
-		"lint-staged": "^10.5.4",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.3.2",
 		"lodash-es": "^4.17.21",
-		"markdown-table": "^2.0.0",
-		"outdent": "^0.7.1",
-		"rollup": "^2.55.1",
-		"rollup-plugin-esbuild": "^4.5.0",
-		"rollup-plugin-terser": "^7.0.2"
+		"markdown-table": "^3.0.4",
+		"outdent": "^0.8.0",
+		"rollup": "^4.59.0",
+		"rollup-plugin-esbuild": "^6.2.1"
 	},
 	"eslintConfig": {
-		"extends": "@pvtnbr/eslint-config-base",
-		"rules": {
-			"unicorn/prevent-abbreviations": [
-				"error",
-				{
-					"replacements": {
-						"pkg": false,
-						"ref": false
-					}
-				}
-			]
-		}
+		"extends": "eslint:recommended",
+		"env": {
+			"node": true,
+			"es2021": true
+		},
+		"parserOptions": {
+			"ecmaVersion": 2021,
+			"sourceType": "module"
+		},
+		"ignorePatterns": [
+			"dist/**"
+		]
 	}
 }

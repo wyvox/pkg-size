@@ -15,7 +15,7 @@ async function upsertComment({
 	const octokit = getOctokit(token);
 
 	log.info('Getting list of comments');
-	const { data: comments } = await octokit.issues.listComments({
+	const { data: comments } = await octokit.rest.issues.listComments({
 		...repo,
 		issue_number: prNumber,
 	});
@@ -23,14 +23,14 @@ async function upsertComment({
 	const hasPreviousComment = comments.find(comment => comment.body.endsWith(commentSignature));
 	if (hasPreviousComment) {
 		log.info(`Updating previous comment ID ${hasPreviousComment.id}`);
-		await octokit.issues.updateComment({
+		await octokit.rest.issues.updateComment({
 			...repo,
 			comment_id: hasPreviousComment.id,
 			body,
 		});
 	} else {
 		log.info('Posting new comment');
-		await octokit.issues.createComment({
+		await octokit.rest.issues.createComment({
 			...repo,
 			issue_number: prNumber,
 			body,
