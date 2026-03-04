@@ -304,7 +304,7 @@ Default: `100`
 Minimum byte difference to consider a file as changed.
 
 ### strip-hash
-Default: `[.-]([0-9a-zA-Z]{8,})[.-]`
+Default: `[.-]([0-9a-zA-Z_-]{8,})[.-]`
 
 Regular expression pattern used to normalize file names for comparison by stripping content hashes. This allows files that only differ by a hash in their name (e.g. `app-BcaWxUPr.js` vs `app-xyz12345.js`) to be compared as the same file rather than shown as an added/removed file pair.
 
