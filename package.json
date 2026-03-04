@@ -2,6 +2,7 @@
 	"name": "pkg-size-action",
 	"version": "0.0.0-semantic-release",
 	"description": "Check package size changes on pull-requests",
+	"packageManager": "pnpm@10.30.3",
 	"keywords": [
 		"github",
 		"action",
