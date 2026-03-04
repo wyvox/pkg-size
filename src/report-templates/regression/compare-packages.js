@@ -1,9 +1,13 @@
-import { partition, round } from 'lodash-es';
 import {
-	partionHidden,
+	partitionHidden,
 	sortFiles,
 	createStripHash,
 } from '../utils.js';
+
+const round = (number, precision) => {
+	const factor = 10 ** precision;
+	return Math.round(number * factor) / factor;
+};
 
 const percent = (fraction) => {
 	if (fraction < 0.001) { // 0.09% and lower
@@ -71,11 +75,12 @@ function comparePackages(head, base, {
 
 	sortFiles(allFiles, sortBy, sortOrder);
 
-	const [hidden, files] = partionHidden(hideFiles, allFiles);
-	const [unchanged, changed] = partition(
-		files,
-		file => (file.diff && file.diff.size && Math.abs(file.diff.size.delta) < ignoreThreshold),
-	);
+	const [hidden, files] = partitionHidden(hideFiles, allFiles);
+	const unchanged = [];
+	const changed = [];
+	for (const file of files) {
+		(file.diff && file.diff.size && Math.abs(file.diff.size.delta) < ignoreThreshold ? unchanged : changed).push(file);
+	}
 
 	return {
 		head,

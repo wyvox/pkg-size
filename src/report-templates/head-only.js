@@ -3,7 +3,7 @@ import { markdownTable } from 'markdown-table';
 import outdent from 'outdent';
 import { c, strong } from '../lib/markdown.js';
 import {
-	partionHidden,
+	partitionHidden,
 	getSizeLabels,
 	parseDisplaySize,
 	listSizes,
@@ -21,7 +21,7 @@ function headOnly({
 	const sizeHeadingLabel = getSizeLabels(displaySizes);
 
 	sortFiles(headPkgData.files, sortBy, sortOrder);
-	const [hidden, files] = partionHidden(hideFiles, headPkgData.files);
+	const [hidden, files] = partitionHidden(hideFiles, headPkgData.files);
 
 	const table = markdownTable([
 		['File', `Size${sizeHeadingLabel}`],
