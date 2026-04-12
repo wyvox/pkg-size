@@ -4,6 +4,7 @@ import exec from './exec.js';
 import npmCi from './npm-ci.js';
 import isFileTracked from './is-file-tracked.js';
 import { c, link } from './markdown.js';
+import createNpmIgnoreOverrides from './create-npm-ignore-overrides.js';
 
 let pkgSizeInstalled = false;
 
@@ -66,6 +67,7 @@ async function buildRef({
 	}
 
 	log.info('Getting package size');
+	createNpmIgnoreOverrides(cwd);
 	const result = await exec('pkg-size --json', { cwd }).catch((error) => {
 		throw new Error(`Failed to determine package size: ${error.message}`);
 	});
