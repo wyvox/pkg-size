@@ -127,3 +127,25 @@ test('regression: file names appear inside the details section when auto-collaps
 
 	assert.ok(detailsContent.includes('dist/file0.js'), 'File names should appear inside the details section');
 });
+
+test('regression: title overrides default heading and includeTarball=false hides tarball row', () => {
+const headPkgData = makePkgData([['dist/dev/a.js', 1200]]);
+const basePkgData = makePkgData([['dist/dev/a.js', 1000]]);
+
+const output = generateComment({
+headPkgData,
+basePkgData,
+displaySize: 'uncompressed',
+sortBy: 'delta',
+sortOrder: 'desc',
+unchangedFiles: 'collapse',
+ignoreThreshold: 0,
+autoCollapse: true,
+title: '📊 Package size report — Dev',
+includeTarball: false,
+});
+
+assert.ok(output.includes('📊 Package size report — Dev'), 'Custom title should be rendered');
+assert.ok(output.includes('**Total**'), 'Total row should still be present');
+assert.ok(!output.includes('**Tarball size**'), 'Tarball size row should be omitted');
+});

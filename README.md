@@ -240,6 +240,44 @@ jobs:
 ```
 </details>
 
+<details>
+  <summary><strong>Report multiple build outputs separately (e.g. <code>dist/dev</code> &amp; <code>dist/prod</code>)</strong></summary>
+  <br>
+
+If your build produces multiple distribution folders and you want a separate size table for each, use the `paths` option. Each entry may use the `Label: prefix` form to give the section a friendly heading.
+
+```yaml
+name: Package Size Report
+
+on:
+  pull_request:
+    branches: [ master, develop ]
+
+jobs:
+  pkg-size-report:
+    name: Package Size Report
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Package size report
+        uses: pkg-size/action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          paths: |
+            Dev: dist/dev
+            Prod: dist/prod
+```
+</details>
+
 ## ⚙️ Options
 
 ### build-command
@@ -334,6 +372,25 @@ To disable auto-collapsing:
 ```yml
 auto-collapse: false
 ```
+
+### paths
+Default: not set (single combined report)
+
+Optional newline-separated list of path prefixes. When provided, the action emits one report section per entry instead of a single combined table.
+
+Each entry can either be a bare path prefix or use the form `Label: prefix` to provide a friendly heading. Lines that are blank or start with `#` are ignored. Trailing slashes on prefixes are stripped.
+
+Files are matched by prefix: a file is included when its path is exactly equal to the prefix or starts with `prefix + "/"`. Files that don't fall under any of the listed prefixes are excluded from the report. Because per-path subsets cannot meaningfully share a single tarball size, the per-path tables omit the **Tarball size** row and a single tarball summary line is appended after all sections.
+
+For example, to produce separate tables for `dist/dev` and `dist/prod`:
+
+```yml
+paths: |
+  Dev: dist/dev
+  Prod: dist/prod
+```
+
+When this option is set, an additional `pathsReports` action output is emitted containing the per-path sliced package data.
 
 ## 💁‍♀️ FAQ
 

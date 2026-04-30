@@ -106,3 +106,21 @@ test('head-only: file names appear inside the details section when auto-collapsi
 
 	assert.ok(detailsContent.includes('dist/file0.js'), 'File names should appear inside the details section');
 });
+
+test('head-only: title overrides default heading and includeTarball=false hides tarball row', () => {
+const headPkgData = makePkgData([['dist/dev/a.js']]);
+
+const output = headOnly({
+headPkgData,
+displaySize: 'uncompressed',
+sortBy: 'delta',
+sortOrder: 'desc',
+autoCollapse: true,
+title: '📊 Package size report — Dev',
+includeTarball: false,
+});
+
+assert.ok(output.includes('📊 Package size report — Dev'), 'Custom title should be rendered');
+assert.ok(output.includes('**Total**'), 'Total row should still be present');
+assert.ok(!output.includes('**Tarball size**'), 'Tarball size row should be omitted');
+});
