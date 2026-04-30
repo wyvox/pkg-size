@@ -2,6 +2,7 @@
 	"name": "pkg-size-action",
 	"version": "0.0.0-semantic-release",
 	"description": "Check package size changes on pull-requests",
+	"type": "module",
 	"packageManager": "pnpm@10.30.3",
 	"keywords": [
 		"github",
@@ -23,7 +24,7 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "rollup -c",
+		"build": "rolldown -c",
 		"lint": "eslint .",
 		"test": "node --no-warnings=MODULE_TYPELESS_PACKAGE_JSON --test $(find src -name '*.test.mjs')"
 	},
@@ -40,13 +41,9 @@
 		"@actions/exec": "^3.0.0",
 		"@actions/github": "^9.0.0",
 		"@actions/io": "^3.0.2",
-		"@rollup/plugin-commonjs": "^29.0.0",
-		"@rollup/plugin-json": "^6.1.0",
-		"@rollup/plugin-node-resolve": "^16.0.3",
 		"builtin-modules": "^5.0.0",
 		"byte-size": "^9.0.1",
 		"conventional-changelog-conventionalcommits": "^9.2.0",
-		"esbuild": "^0.27.3",
 		"eslint": "^8.57.1",
 		"glob-to-regexp": "^0.4.1",
 		"husky": "^9.1.7",
@@ -54,8 +51,7 @@
 		"lodash-es": "^4.17.21",
 		"markdown-table": "^3.0.4",
 		"outdent": "^0.8.0",
-		"rollup": "^4.59.0",
-		"rollup-plugin-esbuild": "^6.2.1"
+		"rolldown": "1.0.0-rc.18"
 	},
 	"eslintConfig": {
 		"extends": "eslint:recommended",
