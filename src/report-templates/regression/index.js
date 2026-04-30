@@ -39,6 +39,8 @@ function generateComment({
 	ignoreThreshold,
 	autoCollapse,
 	stripHash,
+	title,
+	includeTarball = true,
 }) {
 	const regressionData = comparePackages(headPkgData, basePkgData, {
 		sortBy,
@@ -81,14 +83,14 @@ function generateComment({
 				+ c(byteSize(regressionData.head[p]))
 			)),
 		],
-		[
+		...(includeTarball ? [[
 			strong('Tarball size'),
 			c(byteSize(regressionData.base.tarballSize)),
 			(
 				sup(formatDelta(regressionData.diff.tarballSize))
 				+ c(byteSize(regressionData.head.tarballSize))
 			),
-		],
+		]] : []),
 	];
 
 	const shouldAutoCollapse = autoCollapse && fileRows.length > AUTO_COLLAPSE_THRESHOLD;
@@ -160,8 +162,10 @@ function generateComment({
 		hiddenTable = `<details><summary>Hidden files</summary>\n\n${hiddenTable}\n</details>`;
 	}
 
+	const heading = title || '📊 Package size report';
+
 	return outdent`
-	### 📊 Package size report&nbsp;&nbsp;&nbsp;<kbd>${formatDelta(regressionData.diff.size) || 'No changes'}</kbd>
+	### ${heading}&nbsp;&nbsp;&nbsp;<kbd>${formatDelta(regressionData.diff.size) || 'No changes'}</kbd>
 
 	${table}
 

@@ -19,6 +19,8 @@ function headOnly({
 	sortBy,
 	sortOrder,
 	autoCollapse,
+	title,
+	includeTarball = true,
 }) {
 	const displaySizes = parseDisplaySize(displaySize);
 	const sizeHeadingLabel = getSizeLabels(displaySizes);
@@ -36,10 +38,10 @@ function headOnly({
 			strong('Total'),
 			listSizes(displaySizes, p => c(byteSize(headPkgData[p]))),
 		],
-		[
+		...(includeTarball ? [[
 			strong('Tarball size'),
 			c(byteSize(headPkgData.tarballSize)),
-		],
+		]] : []),
 	];
 
 	const shouldAutoCollapse = autoCollapse && files.length > AUTO_COLLAPSE_THRESHOLD;
@@ -89,7 +91,7 @@ function headOnly({
 	}
 
 	return outdent`
-	### 📊 Package size report
+	### ${title || '📊 Package size report'}
 
 	${table}
 

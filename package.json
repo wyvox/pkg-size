@@ -23,7 +23,7 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "rollup -c && :",
+		"build": "rollup -c",
 		"lint": "eslint .",
 		"test": "node --no-warnings=MODULE_TYPELESS_PACKAGE_JSON --test $(find src -name '*.test.mjs')"
 	},

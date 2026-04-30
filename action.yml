@@ -28,6 +28,8 @@ inputs:
   auto-collapse:
     description: 'Automatically collapse file rows into a <details> section when there are more than 20 files: true, false'
     default: 'true'
+  paths:
+    description: 'Optional newline-separated list of path prefixes to report on individually. When provided, the action emits one table per entry (titled by the prefix) instead of a single combined table.'
 runs:
   using: 'node20'
   main: 'dist/index.js'
