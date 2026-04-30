@@ -2699,7 +2699,7 @@ function st() {
   }, Ir;
 }
 var dr, go;
-function $e() {
+function et() {
   if (go) return dr;
   go = 1;
   const { types: e, inspect: t } = rt, { markAsUncloneable: A } = Mn, { toUSVString: s } = Ue(), r = {};
@@ -2984,7 +2984,7 @@ var fr, lo;
 function it() {
   if (lo) return fr;
   lo = 1;
-  const { Transform: e } = ot, t = $A, { redirectStatusSet: A, referrerPolicySet: s, badPortsSet: r } = bA(), { getGlobalOrigin: n } = ao(), { collectASequenceOfCodePoints: o, collectAnHTTPQuotedString: a, removeChars: u, parseMIMEType: l } = st(), { performance: i } = Xc, { isBlobLike: c, ReadableStreamFrom: Q, isValidHTTPToken: h, normalizedMethodRecordsBase: C } = Ue(), d = He, { isUint8Array: y } = Nn, { webidl: D } = $e();
+  const { Transform: e } = ot, t = $A, { redirectStatusSet: A, referrerPolicySet: s, badPortsSet: r } = bA(), { getGlobalOrigin: n } = ao(), { collectASequenceOfCodePoints: o, collectAnHTTPQuotedString: a, removeChars: u, parseMIMEType: l } = st(), { performance: i } = Xc, { isBlobLike: c, ReadableStreamFrom: Q, isValidHTTPToken: h, normalizedMethodRecordsBase: C } = Ue(), d = He, { isUint8Array: y } = Nn, { webidl: D } = et();
   let k = [], N;
   try {
     N = require("node:crypto");
@@ -3637,7 +3637,7 @@ var wr, Eo;
 function Qo() {
   if (Eo) return wr;
   Eo = 1;
-  const { Blob: e, File: t } = ct, { kState: A } = Tt(), { webidl: s } = $e();
+  const { Blob: e, File: t } = ct, { kState: A } = Tt(), { webidl: s } = et();
   class r {
     constructor(a, u, l = {}) {
       const i = u, c = l.type, Q = l.lastModified ?? Date.now();
@@ -3686,7 +3686,7 @@ var mr, ho;
 function RA() {
   if (ho) return mr;
   ho = 1;
-  const { isBlobLike: e, iteratorMixin: t } = it(), { kState: A } = Tt(), { kEnumerableProperty: s } = Ue(), { FileLike: r, isFileLike: n } = Qo(), { webidl: o } = $e(), { File: a } = ct, u = rt, l = globalThis.File ?? a;
+  const { isBlobLike: e, iteratorMixin: t } = it(), { kState: A } = Tt(), { kEnumerableProperty: s } = Ue(), { FileLike: r, isFileLike: n } = Qo(), { webidl: o } = et(), { File: a } = ct, u = rt, l = globalThis.File ?? a;
   class i {
     constructor(h) {
       if (o.util.markAsUncloneable(this), h !== void 0)
@@ -3947,7 +3947,7 @@ function eA() {
     fullyReadBody: o,
     extractMimeType: a,
     utf8DecodeBytes: u
-  } = it(), { FormData: l } = RA(), { kState: i } = Tt(), { webidl: c } = $e(), { Blob: Q } = ct, h = He, { isErrored: C, isDisturbed: d } = ot, { isArrayBuffer: y } = Nn, { serializeAMimeType: D } = st(), { multipartFormDataParser: k } = dg();
+  } = it(), { FormData: l } = RA(), { kState: i } = Tt(), { webidl: c } = et(), { Blob: Q } = ct, h = He, { isErrored: C, isDisturbed: d } = ot, { isArrayBuffer: y } = Nn, { serializeAMimeType: D } = st(), { multipartFormDataParser: k } = dg();
   let N;
   try {
     const v = require("node:crypto");
@@ -7916,7 +7916,7 @@ function Yt() {
     iteratorMixin: A,
     isValidHeaderName: s,
     isValidHeaderValue: r
-  } = it(), { webidl: n } = $e(), o = He, a = rt, u = /* @__PURE__ */ Symbol("headers map"), l = /* @__PURE__ */ Symbol("headers map sorted");
+  } = it(), { webidl: n } = et(), o = He, a = rt, u = /* @__PURE__ */ Symbol("headers map"), l = /* @__PURE__ */ Symbol("headers map sorted");
   function i(M) {
     return M === 10 || M === 13 || M === 9 || M === 32;
   }
@@ -8250,7 +8250,7 @@ function UA() {
   } = it(), {
     redirectStatusSet: B,
     nullBodyStatus: w
-  } = bA(), { kState: g, kHeaders: E } = Tt(), { webidl: p } = $e(), { FormData: I } = RA(), { URLSerializer: m } = st(), { kConstruct: b } = Ve(), U = He, { types: S } = rt, G = new TextEncoder("utf-8");
+  } = bA(), { kState: g, kHeaders: E } = Tt(), { webidl: p } = et(), { FormData: I } = RA(), { URLSerializer: m } = st(), { kConstruct: b } = Ve(), U = He, { types: S } = rt, G = new TextEncoder("utf-8");
   class v {
     // Creates network error Response.
     static error() {
@@ -8563,7 +8563,7 @@ function nA() {
     requestCredentials: f,
     requestCache: B,
     requestDuplex: w
-  } = bA(), { kEnumerableProperty: g, normalizedMethodRecordsBase: E, normalizedMethodRecords: p } = Q, { kHeaders: I, kSignal: m, kState: b, kDispatcher: U } = Tt(), { webidl: S } = $e(), { URLSerializer: G } = st(), { kConstruct: v } = Ve(), $ = He, { getMaxListeners: ne, setMaxListeners: ge, getEventListeners: ae, defaultMaxListeners: Be } = qt, he = /* @__PURE__ */ Symbol("abortController"), Qe = new c(({ signal: P, abort: Z }) => {
+  } = bA(), { kEnumerableProperty: g, normalizedMethodRecordsBase: E, normalizedMethodRecords: p } = Q, { kHeaders: I, kSignal: m, kState: b, kDispatcher: U } = Tt(), { webidl: S } = et(), { URLSerializer: G } = st(), { kConstruct: v } = Ve(), $ = He, { getMaxListeners: ne, setMaxListeners: ge, getEventListeners: ae, defaultMaxListeners: Be } = qt, he = /* @__PURE__ */ Symbol("abortController"), Qe = new c(({ signal: P, abort: Z }) => {
     P.removeEventListener("abort", Z);
   }), ye = /* @__PURE__ */ new WeakMap();
   function we(P) {
@@ -9123,7 +9123,7 @@ function NA() {
     safeMethodsSet: P,
     requestBodyHeader: Z,
     subresourceSet: se
-  } = bA(), le = qt, { Readable: oe, pipeline: fe, finished: Me } = ot, { addAbortListener: pe, isErrored: Le, isReadable: Re, bufferToLowerCasedHeaderName: ke } = Ue(), { dataURLProcessor: de, serializeAMimeType: We, minimizeSupportedMimeType: xe } = st(), { getGlobalDispatcher: Je } = os(), { webidl: j } = $e(), { STATUS_CODES: R } = wA, q = ["GET", "HEAD"], ie = typeof __UNDICI_IS_NODE__ < "u" || typeof esbuildDetection < "u" ? "node" : "undici";
+  } = bA(), le = qt, { Readable: oe, pipeline: fe, finished: Me } = ot, { addAbortListener: pe, isErrored: Le, isReadable: Re, bufferToLowerCasedHeaderName: ke } = Ue(), { dataURLProcessor: de, serializeAMimeType: We, minimizeSupportedMimeType: xe } = st(), { getGlobalDispatcher: Je } = os(), { webidl: j } = et(), { STATUS_CODES: R } = wA, q = ["GET", "HEAD"], ie = typeof __UNDICI_IS_NODE__ < "u" || typeof esbuildDetection < "u" ? "node" : "undici";
   let ue;
   class Ce extends le {
     constructor(O) {
@@ -9677,7 +9677,7 @@ var ds, fi;
 function Hg() {
   if (fi) return ds;
   fi = 1;
-  const { webidl: e } = $e(), t = /* @__PURE__ */ Symbol("ProgressEvent state");
+  const { webidl: e } = et(), t = /* @__PURE__ */ Symbol("ProgressEvent state");
   class A extends Event {
     constructor(r, n = {}) {
       r = e.converters.DOMString(r, "ProgressEvent constructor", "type"), n = e.converters.ProgressEventInit(n ?? {}), super(r, n), this[t] = {
@@ -10143,7 +10143,7 @@ function xg() {
     kResult: n,
     kEvents: o,
     kAborted: a
-  } = di(), { webidl: u } = $e(), { kEnumerableProperty: l } = Ue();
+  } = di(), { webidl: u } = et(), { kEnumerableProperty: l } = Ue();
   class i extends EventTarget {
     constructor() {
       super(), this[s] = "empty", this[n] = null, this[r] = null, this[o] = {
@@ -10319,7 +10319,7 @@ var bs, bi;
 function Vg() {
   if (bi) return bs;
   bi = 1;
-  const { kConstruct: e } = ys(), { urlEquals: t, getFieldValues: A } = _g(), { kEnumerableProperty: s, isDisturbed: r } = Ue(), { webidl: n } = $e(), { Response: o, cloneResponse: a, fromInnerResponse: u } = UA(), { Request: l, fromInnerRequest: i } = nA(), { kState: c } = Tt(), { fetching: Q } = NA(), { urlIsHttpHttpsScheme: h, createDeferredPromise: C, readAllBytes: d } = it(), y = He;
+  const { kConstruct: e } = ys(), { urlEquals: t, getFieldValues: A } = _g(), { kEnumerableProperty: s, isDisturbed: r } = Ue(), { webidl: n } = et(), { Response: o, cloneResponse: a, fromInnerResponse: u } = UA(), { Request: l, fromInnerRequest: i } = nA(), { kState: c } = Tt(), { fetching: Q } = NA(), { urlIsHttpHttpsScheme: h, createDeferredPromise: C, readAllBytes: d } = it(), y = He;
   class D {
     /**
      * @see https://w3c.github.io/ServiceWorker/#dfn-relevant-request-response-list
@@ -10733,7 +10733,7 @@ var Rs, Ri;
 function Wg() {
   if (Ri) return Rs;
   Ri = 1;
-  const { kConstruct: e } = ys(), { Cache: t } = Vg(), { webidl: A } = $e(), { kEnumerableProperty: s } = Ue();
+  const { kConstruct: e } = ys(), { Cache: t } = Vg(), { webidl: A } = et(), { kEnumerableProperty: s } = Ue();
   class r {
     /**
      * @see https://w3c.github.io/ServiceWorker/#dfn-relevant-name-to-cache-map
@@ -11029,7 +11029,7 @@ var Ss, Ui;
 function Zg() {
   if (Ui) return Ss;
   Ui = 1;
-  const { parseSetCookie: e } = zg(), { stringify: t } = Ti(), { webidl: A } = $e(), { Headers: s } = Yt();
+  const { parseSetCookie: e } = zg(), { stringify: t } = Ti(), { webidl: A } = et(), { Headers: s } = Yt();
   function r(u) {
     A.argumentLengthCheck(arguments, 1, "getCookies"), A.brandCheck(u, s, { strict: !1 });
     const l = u.get("cookie"), i = {};
@@ -11132,7 +11132,7 @@ var Us, Ni;
 function oA() {
   if (Ni) return Us;
   Ni = 1;
-  const { webidl: e } = $e(), { kEnumerableProperty: t } = Ue(), { kConstruct: A } = Ve(), { MessagePort: s } = Mn;
+  const { webidl: e } = et(), { kEnumerableProperty: t } = Ue(), { kConstruct: A } = Ve(), { MessagePort: s } = Mn;
   class r extends Event {
     #e;
     constructor(i, c = {}) {
@@ -12016,7 +12016,7 @@ var Ps, xi;
 function $g() {
   if (xi) return Ps;
   xi = 1;
-  const { webidl: e } = $e(), { URLSerializer: t } = st(), { environmentSettingsObject: A } = it(), { staticPropertyDescriptors: s, states: r, sentCloseFrameState: n, sendHints: o } = Jt(), {
+  const { webidl: e } = et(), { URLSerializer: t } = st(), { environmentSettingsObject: A } = it(), { staticPropertyDescriptors: s, states: r, sentCloseFrameState: n, sendHints: o } = Jt(), {
     kWebSocketURL: a,
     kReadyState: u,
     kController: l,
@@ -12441,7 +12441,7 @@ var Vs, qi;
 function tl() {
   if (qi) return Vs;
   qi = 1;
-  const { pipeline: e } = ot, { fetching: t } = NA(), { makeRequest: A } = nA(), { webidl: s } = $e(), { EventSourceStream: r } = el(), { parseMIMEType: n } = st(), { createFastMessageEvent: o } = oA(), { isNetworkError: a } = UA(), { delay: u } = Vi(), { kEnumerableProperty: l } = Ue(), { environmentSettingsObject: i } = it();
+  const { pipeline: e } = ot, { fetching: t } = NA(), { makeRequest: A } = nA(), { webidl: s } = et(), { EventSourceStream: r } = el(), { parseMIMEType: n } = st(), { createFastMessageEvent: o } = oA(), { isNetworkError: a } = UA(), { delay: u } = Vi(), { kEnumerableProperty: l } = Ue(), { environmentSettingsObject: i } = it();
   let c = !1;
   const Q = 3e3, h = 0, C = 1, d = 2, y = "anonymous", D = "use-credentials";
   class k extends EventTarget {
@@ -16957,7 +16957,7 @@ function Nu(e, t, ...A) {
   const s = Su.plugin(...A);
   return new s(Uu(e));
 }
-const et = (e) => `\`${e}\``, Mu = (e, t) => `[${e}](${t})`, La = (e) => `<sub>${e}</sub>`, OA = (e) => `<sup>${e}</sup>`, PA = (e) => `**${e}**`;
+const tt = (e) => `\`${e}\``, Mu = (e, t) => `[${e}](${t})`, La = (e) => `<sub>${e}</sub>`, OA = (e) => `<sup>${e}</sup>`, PA = (e) => `**${e}**`;
 async function Lu({
   token: e,
   commentSignature: t,
@@ -17060,10 +17060,10 @@ class Gu {
     return t.toStringFn ? t.toStringFn.bind(this)() : `${this.value} ${this.unit}`;
   }
 }
-function tt(e, t) {
+function $e(e, t) {
   return new Gu(e, t);
 }
-tt.defaultOptions = function(e) {
+$e.defaultOptions = function(e) {
   Ga = e;
 };
 function vu(e) {
@@ -18167,21 +18167,21 @@ function Jc({
     ...n === "show" ? C : []
   ], N = (E) => [
     E.label,
-    E.base && E.base.size ? Ct(y, (p) => et(tt(E.base[p]))) : "\u2014",
+    E.base && E.base.size ? Ct(y, (p) => tt($e(E.base[p]))) : "\u2014",
     E.head && E.head.size ? Ct(
       y,
-      (p) => (E.base && E.base[p] ? OA(hA(E.diff[p])) : "") + et(tt(E.head[p]))
+      (p) => (E.base && E.base[p] ? OA(hA(E.diff[p])) : "") + tt($e(E.head[p]))
     ) : "\u2014"
   ], L = [
     [
       `${PA("Total")} ${n === "show" ? "" : La("_(Includes all files)_")}`,
-      Ct(y, (E) => et(tt(Q.base[E]))),
-      Ct(y, (E) => OA(hA(Q.diff[E])) + et(tt(Q.head[E])))
+      Ct(y, (E) => tt($e(Q.base[E]))),
+      Ct(y, (E) => OA(hA(Q.diff[E])) + tt($e(Q.head[E])))
     ],
     ...c ? [[
       PA("Tarball size"),
-      et(tt(Q.base.tarballSize)),
-      OA(hA(Q.diff.tarballSize)) + et(tt(Q.head.tarballSize))
+      tt($e(Q.base.tarballSize)),
+      OA(hA(Q.diff.tarballSize)) + tt($e(Q.head.tarballSize))
     ]] : []
   ], M = u && k.length > NB;
   let f, B = "";
@@ -18215,7 +18215,7 @@ ${E}
     ["File", `Size${D}`],
     ...C.map((E) => [
       E.label,
-      Ct(y, (p) => et(tt(E.base[p])))
+      Ct(y, (p) => tt($e(E.base[p])))
     ])
   ], {
     align: ["", "r"]
@@ -18228,10 +18228,10 @@ ${w}
     ["File", `Before${D}`, `After${D}`],
     ...d.map((E) => [
       E.label,
-      E.base && E.base.size ? Ct(y, (p) => et(tt(E.base[p]))) : "\u2014",
+      E.base && E.base.size ? Ct(y, (p) => tt($e(E.base[p]))) : "\u2014",
       E.head && E.head.size ? Ct(
         y,
-        (p) => (E.base && E.base[p] ? OA(hA(E.diff[p])) : "") + et(tt(E.head[p]))
+        (p) => (E.base && E.base[p] ? OA(hA(E.diff[p])) : "") + tt($e(E.head[p]))
       ) : "\u2014"
     ])
   ], {
@@ -18266,15 +18266,15 @@ function Hc({
   Gc(e.files, s, r);
   const [i, c] = Uc(t, e.files), Q = (k) => [
     k.label,
-    Ct(u, (N) => et(tt(k[N])))
+    Ct(u, (N) => tt($e(k[N])))
   ], h = [
     [
       PA("Total"),
-      Ct(u, (k) => et(tt(e[k])))
+      Ct(u, (k) => tt($e(e[k])))
     ],
     ...a ? [[
       PA("Tarball size"),
-      et(tt(e.tarballSize))
+      tt($e(e.tarballSize))
     ]] : []
   ], C = n && c.length > MB;
   let d, y = "";
@@ -18308,7 +18308,7 @@ ${k}
     ["File", `Size${l}`],
     ...i.map((k) => [
       k.label,
-      Ct(u, (N) => et(tt(k[N])))
+      Ct(u, (N) => tt($e(k[N])))
     ])
   ], {
     align: ["", "r"]
@@ -18416,7 +18416,7 @@ ${u.message}`);
   await Promise.all(n.files.map(async (a) => {
     n.size += a.size, n.sizeGzip += a.sizeGzip, n.sizeBrotli += a.sizeBrotli;
     const u = await vB(a.path);
-    a.isTracked = u, a.label = u ? Mu(et(a.path), `${t.repo.html_url}/blob/${t.ref}/${a.path}`) : et(a.path);
+    a.isTracked = u, a.label = u ? Mu(tt(a.path), `${t.repo.html_url}/blob/${t.ref}/${a.path}`) : tt(a.path);
   })), Xe("Cleaning up"), await gt("git reset --hard");
   const { stdout: o } = await gt("git clean -dfx");
   return sa(o), n;
@@ -18478,7 +18478,7 @@ function HB(e, t, A) {
     title: `\u{1F4CA} Package size report \u2014 ${l}`,
     includeTarball: !1
   }));
-  return u.push(`**Tarball size:** ${e.tarballSize} bytes`), u.join(`
+  return u.push(`**Tarball size:** ${$e(e.tarballSize)}`), u.join(`
 
 ---
 
@@ -18521,7 +18521,7 @@ function OB(e, t, A, s) {
     stripHash: c,
     title: `\u{1F4CA} Package size report \u2014 ${D}`,
     includeTarball: !1
-  })), h = e.tarballSize, C = t.tarballSize, d = h - C, y = d === 0 ? `**Tarball size:** ${h} bytes (no change)` : `**Tarball size:** ${h} bytes (was ${C} bytes, ${d > 0 ? "+" : ""}${d})`;
+  })), h = e.tarballSize, C = t.tarballSize, d = h - C, y = d === 0 ? `**Tarball size:** ${$e(h)} (no change)` : `**Tarball size:** ${$e(h)} (was ${$e(C)}, ${d > 0 ? "+" : "-"}${$e(Math.abs(d))})`;
   return Q.push(y), Q.join(`
 
 ---
