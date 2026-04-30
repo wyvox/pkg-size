@@ -12,11 +12,7 @@ const rollupConfig = {
 		nodeResolve({
 			preferBuiltins: false,
 		}),
-		esbuild({
-			minifyIdentifiers: true,
-			minifySyntax: true,
-			legalComments: 'none',
-		}),
+		esbuild(),
 	],
 	external: builtins,
 	output: {
