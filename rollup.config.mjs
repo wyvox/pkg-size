@@ -7,16 +7,11 @@ import esbuild from 'rollup-plugin-esbuild';
 const rollupConfig = {
 	input: 'src/index.js',
 	plugins: [
-		commonjs(),
-		json(),
-		nodeResolve({
-			preferBuiltins: false,
-		}),
 		esbuild(),
 	],
 	external: builtins,
 	output: {
-		format: 'cjs',
+		format: 'es',
 		file: 'dist/index.js',
 	},
 };
