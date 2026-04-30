@@ -1,9 +1,10 @@
 /**
  * Parse the `paths` action input into a list of `{ label, prefix }` entries.
  *
- * Input is a newline-separated list. Each line may optionally use a
- * `Label: prefix` form to provide a friendly heading. Lines that are empty
- * or start with `#` are ignored.
+ * Input is a newline-separated list of path prefixes. Lines that are empty or
+ * start with `#` are ignored. The `label` is always the prefix itself — the
+ * heading is derived from the filter so it can be trusted to reflect what was
+ * actually matched.
  *
  * @param {string | undefined | null} input
  * @returns {Array<{ label: string, prefix: string }>}
@@ -20,29 +21,13 @@ function parsePathsInput(input) {
 			continue;
 		}
 
-		const colonIndex = line.indexOf(':');
-		let label;
-		let prefix;
-		if (colonIndex > -1) {
-			label = line.slice(0, colonIndex).trim();
-			prefix = line.slice(colonIndex + 1).trim();
-		} else {
-			prefix = line;
-			label = line;
-		}
-
 		// Normalize: drop trailing slashes so "dist/dev/" matches "dist/dev/foo.js"
-		prefix = prefix.replace(/\/+$/, '');
-
+		const prefix = line.replace(/\/+$/, '');
 		if (!prefix) {
 			continue;
 		}
 
-		if (!label) {
-			label = prefix;
-		}
-
-		entries.push({ label, prefix });
+		entries.push({ label: prefix, prefix });
 	}
 
 	return entries;

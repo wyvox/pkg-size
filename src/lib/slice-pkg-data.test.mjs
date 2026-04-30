@@ -16,34 +16,21 @@ test('parsePathsInput: parses bare prefixes', () => {
 	]);
 });
 
-test('parsePathsInput: parses Label: prefix entries', () => {
-	const result = parsePathsInput('Dev: dist/dev\nProd: dist/prod');
-	assert.deepEqual(result, [
-		{ label: 'Dev', prefix: 'dist/dev' },
-		{ label: 'Prod', prefix: 'dist/prod' },
-	]);
-});
-
 test('parsePathsInput: ignores blank lines and # comments', () => {
-	const result = parsePathsInput('\n# comment\nDev: dist/dev\n   \n');
-	assert.deepEqual(result, [{ label: 'Dev', prefix: 'dist/dev' }]);
+	const result = parsePathsInput('\n# comment\ndist/dev\n   \n');
+	assert.deepEqual(result, [{ label: 'dist/dev', prefix: 'dist/dev' }]);
 });
 
 test('parsePathsInput: strips trailing slashes from prefix', () => {
-	const result = parsePathsInput('Dev: dist/dev/\nfoo/');
+	const result = parsePathsInput('dist/dev/\nfoo/');
 	assert.deepEqual(result, [
-		{ label: 'Dev', prefix: 'dist/dev' },
-		{ label: 'foo/', prefix: 'foo' },
+		{ label: 'dist/dev', prefix: 'dist/dev' },
+		{ label: 'foo', prefix: 'foo' },
 	]);
 });
 
-test('parsePathsInput: skips entries with empty prefix', () => {
-	const result = parsePathsInput('Dev:   \nProd: dist/prod');
-	assert.deepEqual(result, [{ label: 'Prod', prefix: 'dist/prod' }]);
-});
-
 test('parsePathsInput: handles CRLF line endings', () => {
-	const result = parsePathsInput('Dev: dist/dev\r\nProd: dist/prod');
+	const result = parsePathsInput('dist/dev\r\ndist/prod');
 	assert.equal(result.length, 2);
 	assert.equal(result[1].prefix, 'dist/prod');
 });

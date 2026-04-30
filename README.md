@@ -244,7 +244,7 @@ jobs:
   <summary><strong>Report multiple build outputs separately (e.g. <code>dist/dev</code> &amp; <code>dist/prod</code>)</strong></summary>
   <br>
 
-If your build produces multiple distribution folders and you want a separate size table for each, use the `paths` option. Each entry may use the `Label: prefix` form to give the section a friendly heading.
+If your build produces multiple distribution folders and you want a separate size table for each, use the `paths` option. Each section's heading is the prefix itself, so the heading always reflects exactly what was matched.
 
 ```yaml
 name: Package Size Report
@@ -273,8 +273,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           paths: |
-            Dev: dist/dev
-            Prod: dist/prod
+            dist/dev
+            dist/prod
 ```
 </details>
 
@@ -376,9 +376,9 @@ auto-collapse: false
 ### paths
 Default: not set (single combined report)
 
-Optional newline-separated list of path prefixes. When provided, the action emits one report section per entry instead of a single combined table.
+Optional newline-separated list of path prefixes. When provided, the action emits one report section per entry instead of a single combined table. Each section's heading is derived directly from the prefix so the heading always reflects exactly what was matched.
 
-Each entry can either be a bare path prefix or use the form `Label: prefix` to provide a friendly heading. Lines that are blank or start with `#` are ignored. Trailing slashes on prefixes are stripped.
+Lines that are blank or start with `#` are ignored. Trailing slashes on prefixes are stripped.
 
 Files are matched by prefix: a file is included when its path is exactly equal to the prefix or starts with `prefix + "/"`. Files that don't fall under any of the listed prefixes are excluded from the report. Because per-path subsets cannot meaningfully share a single tarball size, the per-path tables omit the **Tarball size** row and a single tarball summary line is appended after all sections.
 
@@ -386,8 +386,8 @@ For example, to produce separate tables for `dist/dev` and `dist/prod`:
 
 ```yml
 paths: |
-  Dev: dist/dev
-  Prod: dist/prod
+  dist/dev
+  dist/prod
 ```
 
 When this option is set, an additional `pathsReports` action output is emitted containing the per-path sliced package data.

@@ -18429,9 +18429,8 @@ function YB(e) {
     const s = A.trim();
     if (!s || s.startsWith("#"))
       continue;
-    const r = s.indexOf(":");
-    let n, o;
-    r > -1 ? (n = s.slice(0, r).trim(), o = s.slice(r + 1).trim()) : (o = s, n = s), o = o.replace(/\/+$/, ""), o && (n || (n = o), t.push({ label: n, prefix: o }));
+    const r = s.replace(/\/+$/, "");
+    r && t.push({ label: r, prefix: r });
   }
   return t;
 }
