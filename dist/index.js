@@ -23934,25 +23934,40 @@ function renderHeadOnly(headPkgData, opts, paths) {
 		autoCollapse
 	});
 	const seenTarballDirs = /* @__PURE__ */ new Set();
-	return `## 📊 Size report\n\n${paths.map(({ label, prefix }) => {
+	const blocks = [];
+	for (const { label, prefix } of paths) {
 		const tarballDir = headPkgData.pathTarballs?.[prefix] ?? null;
-		const includeTarball = Boolean(tarballDir) && !seenTarballDirs.has(tarballDir);
-		if (includeTarball) seenTarballDirs.add(tarballDir);
-		const tarballSize = tarballDir ? headPkgData.tarballs?.[tarballDir]?.tarballSize ?? 0 : 0;
-		return headOnly({
-			headPkgData: {
-				...slicePkgData(headPkgData, prefix),
-				tarballSize
-			},
-			displaySize,
-			sortBy,
-			sortOrder,
-			hideFiles,
-			autoCollapse,
-			title: label,
-			includeTarball
+		if (tarballDir && !seenTarballDirs.has(tarballDir)) {
+			seenTarballDirs.add(tarballDir);
+			const tarballSize = headPkgData.tarballs?.[tarballDir]?.tarballSize ?? 0;
+			blocks.push({
+				isTarball: true,
+				content: `${strong("Tarball size")} — ${c(byteSize(tarballSize))}`
+			});
+		}
+		blocks.push({
+			isTarball: false,
+			content: headOnly({
+				headPkgData: {
+					...slicePkgData(headPkgData, prefix),
+					tarballSize: 0
+				},
+				displaySize,
+				sortBy,
+				sortOrder,
+				hideFiles,
+				autoCollapse,
+				title: label,
+				includeTarball: false
+			})
 		});
-	}).join("\n\n---\n\n")}`;
+	}
+	let output = "";
+	for (let i = 0; i < blocks.length; i++) {
+		if (i > 0) output += blocks[i - 1].isTarball && !blocks[i].isTarball ? "\n\n" : "\n\n---\n\n";
+		output += blocks[i].content;
+	}
+	return `## 📊 Size report\n\n${output}`;
 }
 function renderRegression(headPkgData, basePkgData, opts, paths) {
 	const { displaySize, sortBy, sortOrder, hideFiles, unchangedFiles, ignoreThreshold, autoCollapse, stripHash } = opts;
@@ -23969,33 +23984,49 @@ function renderRegression(headPkgData, basePkgData, opts, paths) {
 		stripHash
 	});
 	const seenTarballDirs = /* @__PURE__ */ new Set();
-	return `## 📊 Size report\n\n${paths.map(({ label, prefix }) => {
+	const blocks = [];
+	for (const { label, prefix } of paths) {
 		const tarballDir = headPkgData.pathTarballs?.[prefix] ?? null;
-		const includeTarball = Boolean(tarballDir) && !seenTarballDirs.has(tarballDir);
-		if (includeTarball) seenTarballDirs.add(tarballDir);
-		const headTarballSize = tarballDir ? headPkgData.tarballs?.[tarballDir]?.tarballSize ?? 0 : 0;
-		const baseTarballSize = tarballDir ? basePkgData.tarballs?.[tarballDir]?.tarballSize ?? 0 : 0;
-		return generateComment({
-			headPkgData: {
-				...slicePkgData(headPkgData, prefix),
-				tarballSize: headTarballSize
-			},
-			basePkgData: {
-				...slicePkgData(basePkgData, prefix),
-				tarballSize: baseTarballSize
-			},
-			displaySize,
-			sortBy,
-			sortOrder,
-			hideFiles,
-			unchangedFiles,
-			ignoreThreshold,
-			autoCollapse,
-			stripHash,
-			title: label,
-			includeTarball
+		if (tarballDir && !seenTarballDirs.has(tarballDir)) {
+			seenTarballDirs.add(tarballDir);
+			const headTarballSize = headPkgData.tarballs?.[tarballDir]?.tarballSize ?? 0;
+			const baseTarballSize = basePkgData.tarballs?.[tarballDir]?.tarballSize ?? 0;
+			const heading = headTarballSize !== baseTarballSize ? `${strong("Tarball size")} — ${c(byteSize(baseTarballSize))} → ${c(byteSize(headTarballSize))}` : `${strong("Tarball size")} — ${c(byteSize(headTarballSize))}`;
+			blocks.push({
+				isTarball: true,
+				content: heading
+			});
+		}
+		blocks.push({
+			isTarball: false,
+			content: generateComment({
+				headPkgData: {
+					...slicePkgData(headPkgData, prefix),
+					tarballSize: 0
+				},
+				basePkgData: {
+					...slicePkgData(basePkgData, prefix),
+					tarballSize: 0
+				},
+				displaySize,
+				sortBy,
+				sortOrder,
+				hideFiles,
+				unchangedFiles,
+				ignoreThreshold,
+				autoCollapse,
+				stripHash,
+				title: label,
+				includeTarball: false
+			})
 		});
-	}).join("\n\n---\n\n")}`;
+	}
+	let output = "";
+	for (let i = 0; i < blocks.length; i++) {
+		if (i > 0) output += blocks[i - 1].isTarball && !blocks[i].isTarball ? "\n\n" : "\n\n---\n\n";
+		output += blocks[i].content;
+	}
+	return `## 📊 Size report\n\n${output}`;
 }
 async function generateSizeReport({ pr, buildCommand, commentReport, mode, unchangedFiles, hideFiles, sortBy, sortOrder, displaySize, ignoreThreshold, autoCollapse, stripHash, paths }) {
 	startGroup("Build HEAD");

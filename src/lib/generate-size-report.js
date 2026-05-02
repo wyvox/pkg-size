@@ -1,8 +1,10 @@
 import { setOutput } from '@actions/core';
+import byteSize from 'byte-size';
 import { regressionReportTemplate, headOnlyReportTemplate } from '../report-templates/index.js';
 import isBaseDiffFromHead from './is-base-diff-from-head.js';
 import buildRef from './build-ref.js';
 import { slicePkgData } from './slice-pkg-data.js';
+import { c, strong } from './markdown.js';
 import * as log from './log.js';
 
 function renderHeadOnly(headPkgData, opts, paths) {
@@ -26,26 +28,39 @@ function renderHeadOnly(headPkgData, opts, paths) {
 	}
 
 	const seenTarballDirs = new Set();
-	const sections = paths.map(({ label, prefix }) => {
+	const blocks = [];
+	for (const { label, prefix } of paths) {
 		const tarballDir = headPkgData.pathTarballs?.[prefix] ?? null;
-		const includeTarball = Boolean(tarballDir) && !seenTarballDirs.has(tarballDir);
-		if (includeTarball) {
+		if (tarballDir && !seenTarballDirs.has(tarballDir)) {
 			seenTarballDirs.add(tarballDir);
+			const tarballSize = headPkgData.tarballs?.[tarballDir]?.tarballSize ?? 0;
+			blocks.push({ isTarball: true, content: `${strong('Tarball size')} — ${c(byteSize(tarballSize))}` });
 		}
-		const tarballSize = tarballDir ? (headPkgData.tarballs?.[tarballDir]?.tarballSize ?? 0) : 0;
-		return headOnlyReportTemplate({
-			headPkgData: { ...slicePkgData(headPkgData, prefix), tarballSize },
-			displaySize,
-			sortBy,
-			sortOrder,
-			hideFiles,
-			autoCollapse,
-			title: label,
-			includeTarball,
+		blocks.push({
+			isTarball: false,
+			content: headOnlyReportTemplate({
+				headPkgData: { ...slicePkgData(headPkgData, prefix), tarballSize: 0 },
+				displaySize,
+				sortBy,
+				sortOrder,
+				hideFiles,
+				autoCollapse,
+				title: label,
+				includeTarball: false,
+			}),
 		});
-	});
+	}
 
-	return `## 📊 Size report\n\n${sections.join('\n\n---\n\n')}`;
+	let output = '';
+	for (let i = 0; i < blocks.length; i++) {
+		if (i > 0) {
+			// No horizontal rule between a tarball heading and the first section it introduces
+			output += (blocks[i - 1].isTarball && !blocks[i].isTarball) ? '\n\n' : '\n\n---\n\n';
+		}
+		output += blocks[i].content;
+	}
+
+	return `## 📊 Size report\n\n${output}`;
 }
 
 function renderRegression(headPkgData, basePkgData, opts, paths) {
@@ -76,31 +91,47 @@ function renderRegression(headPkgData, basePkgData, opts, paths) {
 	}
 
 	const seenTarballDirs = new Set();
-	const sections = paths.map(({ label, prefix }) => {
+	const blocks = [];
+	for (const { label, prefix } of paths) {
 		const tarballDir = headPkgData.pathTarballs?.[prefix] ?? null;
-		const includeTarball = Boolean(tarballDir) && !seenTarballDirs.has(tarballDir);
-		if (includeTarball) {
+		if (tarballDir && !seenTarballDirs.has(tarballDir)) {
 			seenTarballDirs.add(tarballDir);
+			const headTarballSize = headPkgData.tarballs?.[tarballDir]?.tarballSize ?? 0;
+			const baseTarballSize = basePkgData.tarballs?.[tarballDir]?.tarballSize ?? 0;
+			const heading = headTarballSize !== baseTarballSize
+				? `${strong('Tarball size')} — ${c(byteSize(baseTarballSize))} → ${c(byteSize(headTarballSize))}`
+				: `${strong('Tarball size')} — ${c(byteSize(headTarballSize))}`;
+			blocks.push({ isTarball: true, content: heading });
 		}
-		const headTarballSize = tarballDir ? (headPkgData.tarballs?.[tarballDir]?.tarballSize ?? 0) : 0;
-		const baseTarballSize = tarballDir ? (basePkgData.tarballs?.[tarballDir]?.tarballSize ?? 0) : 0;
-		return regressionReportTemplate({
-			headPkgData: { ...slicePkgData(headPkgData, prefix), tarballSize: headTarballSize },
-			basePkgData: { ...slicePkgData(basePkgData, prefix), tarballSize: baseTarballSize },
-			displaySize,
-			sortBy,
-			sortOrder,
-			hideFiles,
-			unchangedFiles,
-			ignoreThreshold,
-			autoCollapse,
-			stripHash,
-			title: label,
-			includeTarball,
+		blocks.push({
+			isTarball: false,
+			content: regressionReportTemplate({
+				headPkgData: { ...slicePkgData(headPkgData, prefix), tarballSize: 0 },
+				basePkgData: { ...slicePkgData(basePkgData, prefix), tarballSize: 0 },
+				displaySize,
+				sortBy,
+				sortOrder,
+				hideFiles,
+				unchangedFiles,
+				ignoreThreshold,
+				autoCollapse,
+				stripHash,
+				title: label,
+				includeTarball: false,
+			}),
 		});
-	});
+	}
 
-	return `## 📊 Size report\n\n${sections.join('\n\n---\n\n')}`;
+	let output = '';
+	for (let i = 0; i < blocks.length; i++) {
+		if (i > 0) {
+			// No horizontal rule between a tarball heading and the first section it introduces
+			output += (blocks[i - 1].isTarball && !blocks[i].isTarball) ? '\n\n' : '\n\n---\n\n';
+		}
+		output += blocks[i].content;
+	}
+
+	return `## 📊 Size report\n\n${output}`;
 }
 
 async function generateSizeReport({
