@@ -116,6 +116,7 @@ async function generateSizeReport({
 	const headPkgData = await buildRef({
 		refData: pr.head,
 		buildCommand,
+		paths,
 	});
 	setOutput('headPkgData', headPkgData);
 	log.endGroup();
@@ -155,6 +156,7 @@ async function generateSizeReport({
 			checkoutRef: baseRef,
 			refData: pr.base,
 			buildCommand,
+			paths,
 		});
 		log.endGroup();
 	} else {

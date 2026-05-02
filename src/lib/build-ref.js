@@ -4,6 +4,7 @@ import exec from './exec.js';
 import npmCi from './npm-ci.js';
 import isFileTracked from './is-file-tracked.js';
 import { c, link } from './markdown.js';
+import scanDirFiles from './scan-dir-files.js';
 
 let pkgSizeInstalled = false;
 
@@ -11,6 +12,7 @@ async function buildRef({
 	checkoutRef,
 	refData,
 	buildCommand,
+	paths,
 }) {
 	const cwd = process.cwd();
 
@@ -71,8 +73,22 @@ async function buildRef({
 	});
 	log.debug(JSON.stringify(result, null, 4));
 
+	const pkgJsonData = JSON.parse(result.stdout);
+
+	// When paths are specified we measure actual filesystem files rather than
+	// relying on the npm publish file list, so that directories outside the
+	// root package (e.g. workspace sub-packages) are measured correctly.
+	let fileList;
+	if (paths && paths.length > 0) {
+		log.info('Scanning filesystem for specified paths');
+		fileList = await scanDirFiles(paths.map(p => p.prefix), cwd);
+	} else {
+		fileList = pkgJsonData.files;
+	}
+
 	const pkgData = {
-		...JSON.parse(result.stdout),
+		...pkgJsonData,
+		files: fileList,
 		ref: refData,
 		size: 0,
 		sizeGzip: 0,
