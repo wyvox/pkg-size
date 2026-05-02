@@ -33,7 +33,7 @@ function renderHeadOnly(headPkgData, opts, paths) {
 		sortOrder,
 		hideFiles,
 		autoCollapse,
-		title: `📊 Package size report — ${label}`,
+		title: label,
 		includeTarball: false,
 	}));
 
@@ -41,7 +41,7 @@ function renderHeadOnly(headPkgData, opts, paths) {
 	// cannot be meaningfully split across paths.
 	sections.push(`**Tarball size:** ${byteSize(headPkgData.tarballSize)}`);
 
-	return sections.join('\n\n---\n\n');
+	return `## 📊 Size report\n\n${sections.join('\n\n---\n\n')}`;
 }
 
 function renderRegression(headPkgData, basePkgData, opts, paths) {
@@ -82,7 +82,7 @@ function renderRegression(headPkgData, basePkgData, opts, paths) {
 		ignoreThreshold,
 		autoCollapse,
 		stripHash,
-		title: `📊 Package size report — ${label}`,
+		title: label,
 		includeTarball: false,
 	}));
 
@@ -94,7 +94,7 @@ function renderRegression(headPkgData, basePkgData, opts, paths) {
 		: `**Tarball size:** ${byteSize(headTarball)} (was ${byteSize(baseTarball)}, ${tarballDelta > 0 ? '+' : '-'}${byteSize(Math.abs(tarballDelta))})`;
 	sections.push(tarballNote);
 
-	return sections.join('\n\n---\n\n');
+	return `## 📊 Size report\n\n${sections.join('\n\n---\n\n')}`;
 }
 
 async function generateSizeReport({
