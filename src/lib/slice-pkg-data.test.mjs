@@ -1,6 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parsePathsInput, matchesPrefix, slicePkgData } from './slice-pkg-data.js';
+import {
+	parsePathsInput,
+	matchesPrefix,
+	slicePkgData,
+	relativeToPrefix,
+	rewriteLabelVisibleText,
+} from './slice-pkg-data.js';
 
 test('parsePathsInput: returns [] for empty/falsy input', () => {
 	assert.deepEqual(parsePathsInput(''), []);
@@ -109,4 +115,116 @@ test('slicePkgData: preserves additional pkgData fields (e.g. ref)', () => {
 	};
 	const result = slicePkgData(pkgData, 'dist/dev');
 	assert.deepEqual(result.ref, { sha: 'abc' });
+});
+
+test('relativeToPrefix: child paths get ./ prefix', () => {
+	assert.equal(relativeToPrefix('dist/dev/a.js', 'dist/dev'), './a.js');
+	assert.equal(relativeToPrefix('dist/dev/sub/a.js', 'dist/dev'), './sub/a.js');
+});
+
+test('relativeToPrefix: exact match yields ./', () => {
+	assert.equal(relativeToPrefix('dist/dev', 'dist/dev'), './');
+});
+
+test('relativeToPrefix: non-matching path is returned unchanged', () => {
+	assert.equal(relativeToPrefix('dist/prod/a.js', 'dist/dev'), 'dist/prod/a.js');
+});
+
+test('rewriteLabelVisibleText: rewrites code-span label', () => {
+	assert.equal(rewriteLabelVisibleText('`dist/dev/a.js`', './a.js'), '`./a.js`');
+});
+
+test('rewriteLabelVisibleText: rewrites linked label preserving href', () => {
+	const label = '[`dist/dev/a.js`](https://github.com/owner/repo/blob/sha/dist/dev/a.js)';
+	const expected = '[`./a.js`](https://github.com/owner/repo/blob/sha/dist/dev/a.js)';
+	assert.equal(rewriteLabelVisibleText(label, './a.js'), expected);
+});
+
+test('rewriteLabelVisibleText: leaves unrecognized strings unchanged', () => {
+	assert.equal(rewriteLabelVisibleText('plain text', './a.js'), 'plain text');
+	assert.equal(rewriteLabelVisibleText(undefined, './a.js'), undefined);
+});
+
+test('slicePkgData: assigns relativePath and rewrites code-span label', () => {
+	const pkgData = {
+		files: [
+			{
+				path: 'dist/dev/a.js',
+				label: '`dist/dev/a.js`',
+				size: 100,
+				sizeGzip: 40,
+				sizeBrotli: 30,
+			},
+		],
+		size: 100,
+		sizeGzip: 40,
+		sizeBrotli: 30,
+		tarballSize: 1000,
+	};
+	const result = slicePkgData(pkgData, 'dist/dev');
+	assert.equal(result.files[0].path, 'dist/dev/a.js');
+	assert.equal(result.files[0].relativePath, './a.js');
+	assert.equal(result.files[0].label, '`./a.js`');
+});
+
+test('slicePkgData: rewrites linked label preserving href', () => {
+	const href = 'https://github.com/owner/repo/blob/sha/dist/dev/a.js';
+	const pkgData = {
+		files: [
+			{
+				path: 'dist/dev/a.js',
+				label: `[\`dist/dev/a.js\`](${href})`,
+				size: 100,
+				sizeGzip: 40,
+				sizeBrotli: 30,
+			},
+		],
+		size: 100,
+		sizeGzip: 40,
+		sizeBrotli: 30,
+		tarballSize: 1000,
+	};
+	const result = slicePkgData(pkgData, 'dist/dev');
+	assert.equal(result.files[0].label, `[\`./a.js\`](${href})`);
+});
+
+test('slicePkgData: nested relative paths', () => {
+	const pkgData = {
+		files: [
+			{
+				path: 'smoke-tests/v2-app/dist/assets/main.js',
+				label: '`smoke-tests/v2-app/dist/assets/main.js`',
+				size: 100,
+				sizeGzip: 40,
+				sizeBrotli: 30,
+			},
+		],
+		size: 100,
+		sizeGzip: 40,
+		sizeBrotli: 30,
+		tarballSize: 1000,
+	};
+	const result = slicePkgData(pkgData, 'smoke-tests/v2-app/dist');
+	assert.equal(result.files[0].relativePath, './assets/main.js');
+	assert.equal(result.files[0].label, '`./assets/main.js`');
+});
+
+test('slicePkgData: does not mutate the input file objects', () => {
+	const file = {
+		path: 'dist/dev/a.js',
+		label: '`dist/dev/a.js`',
+		size: 100,
+		sizeGzip: 40,
+		sizeBrotli: 30,
+	};
+	const pkgData = {
+		files: [file],
+		size: 100,
+		sizeGzip: 40,
+		sizeBrotli: 30,
+		tarballSize: 1000,
+	};
+	slicePkgData(pkgData, 'dist/dev');
+	assert.equal(file.label, '`dist/dev/a.js`');
+	assert.equal(file.relativePath, undefined);
 });

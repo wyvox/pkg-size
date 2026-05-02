@@ -19813,7 +19813,7 @@ function getOctokit(token, options, ...additionalPlugins) {
 }
 //#endregion
 //#region src/lib/markdown.js
-const c = (string) => `\`${string}\``;
+const c$1 = (string) => `\`${string}\``;
 const link = (text, href) => `[${text}](${href})`;
 const sub = (string) => `<sub>${string}</sub>`;
 const sup = (string) => `<sup>${string}</sup>`;
@@ -23219,6 +23219,47 @@ function createStripHash(regex) {
 		});
 	};
 }
+/**
+* Like `createStripHash`, but produces a human-readable path where every
+* captured hash is replaced with the literal string `{hash}` (or, if the
+* pattern has no capture group, the entire matched portion is replaced with
+* `{hash}`). Used for visible labels when head/base paths only differ by a
+* hash, so the row reads e.g. `./assets/main-{hash}.js`.
+*
+* @param {string} filePath
+* @param {string} [regex]
+* @returns {string}
+*/
+function formatHashedPath(filePath, regex) {
+	if (!regex) return filePath;
+	const pattern = new RegExp(regex);
+	return filePath.replace(pattern, (str, ...hashes) => {
+		hashes = hashes.slice(0, -2).filter((c) => c != null);
+		if (hashes.length) {
+			for (let i = 0; i < hashes.length; i++) {
+				const hash = hashes[i] || "";
+				if (hash) str = str.replace(hash, "{hash}");
+			}
+			return str;
+		}
+		return "{hash}";
+	});
+}
+/**
+* Structural-fallback hash collapser used to pair up files that the
+* configured `strip-hash` regex didn't match. Replaces any run of
+* `[A-Za-z0-9_-]{4,}` that is preceded by `.` or `-` (and followed by `.`,
+* `-`, or end-of-string) with a placeholder. The same shape is used both as
+* a structural pairing key and (with `placeholder = '{hash}'`) for the
+* visible label of a structurally-paired entry.
+*
+* @param {string} filePath
+* @param {string} [placeholder]
+* @returns {string}
+*/
+function structuralHashKey(filePath, placeholder = "*") {
+	return filePath.replace(/([.-])[A-Za-z0-9_-]{4,}(?=[.-]|$)/g, `$1${placeholder}`);
+}
 function getSizeLabels(displaySizes) {
 	if (displaySizes.length === 1 && displaySizes[0].property === "size") return "";
 	return ` (${displaySizes.map((s) => s.label).join(" / ")})`;
@@ -23270,7 +23311,17 @@ function calculateDiff(head, base) {
 		sizeBrotli: calculateDiffBy(head, base, "sizeBrotli")
 	};
 }
-function processPkgFiles(fileMap, type, pkgData, normalizeFilePath) {
+const c = (string) => `\`${string}\``;
+/**
+* Display path used to build a visible label. Prefers `relativePath`
+* (set by `slicePkgData`) so labels in path-scoped sections render
+* relative to the section's prefix, falling back to the cwd-relative
+* `path` when no slicing happened.
+*/
+function displayPathFor(file) {
+	return file.relativePath || file.path;
+}
+function processPkgFiles(fileMap, type, pkgData, normalizeFilePath, stripHash) {
 	for (const file of pkgData.files) {
 		const key = normalizeFilePath ? normalizeFilePath(file.path) : file.path;
 		if (!fileMap[key]) fileMap[key] = {
@@ -23279,14 +23330,63 @@ function processPkgFiles(fileMap, type, pkgData, normalizeFilePath) {
 		};
 		const entry = fileMap[key];
 		entry[type] = file;
-		if (entry.head && entry.base) entry.diff = calculateDiff(entry.head, entry.base);
+		if (entry.head && entry.base) {
+			entry.diff = calculateDiff(entry.head, entry.base);
+			if (stripHash && entry.head.path !== entry.base.path) entry.label = c(formatHashedPath(displayPathFor(entry.head), stripHash));
+		}
+	}
+}
+/**
+* Pair up entries that ended up with only `head` or only `base` (i.e. files
+* the primary strip-hash pass did not match) when their structural shape is
+* unambiguously the same. Two entries are paired iff:
+*
+*   - their parent directory and extension match, and
+*   - their filenames agree after collapsing any `[.-]<hashy-run>` segments,
+*     and
+*   - exactly one head-only and one base-only entry share that bucket.
+*
+* If a bucket has more than one head-only or more than one base-only entry,
+* leaving them alone is the safe choice — that's the "possible collision"
+* case we want to avoid mismatching.
+*/
+function structurallyPairUnmatched(fileMap) {
+	const buckets = /* @__PURE__ */ new Map();
+	const keysByEntry = /* @__PURE__ */ new Map();
+	for (const [key, entry] of Object.entries(fileMap)) {
+		if (entry.head && entry.base) continue;
+		const side = entry.head ? "head" : "base";
+		const file = entry[side];
+		const bucketKey = structuralHashKey(file.path);
+		let bucket = buckets.get(bucketKey);
+		if (!bucket) {
+			bucket = {
+				head: [],
+				base: []
+			};
+			buckets.set(bucketKey, bucket);
+		}
+		bucket[side].push(key);
+		keysByEntry.set(key, bucketKey);
+	}
+	for (const bucket of buckets.values()) {
+		if (bucket.head.length !== 1 || bucket.base.length !== 1) continue;
+		const headKey = bucket.head[0];
+		const baseKey = bucket.base[0];
+		const headEntry = fileMap[headKey];
+		headEntry.base = fileMap[baseKey].base;
+		headEntry.diff = calculateDiff(headEntry.head, headEntry.base);
+		headEntry.label = c(structuralHashKey(displayPathFor(headEntry.head), "{hash}"));
+		headEntry.path = headEntry.head.path;
+		delete fileMap[baseKey];
 	}
 }
 function comparePackages(head, base, { sortBy, sortOrder, hideFiles, ignoreThreshold = 100, stripHash } = {}) {
 	const fileMap = {};
 	const normalizeFilePath = createStripHash(stripHash);
-	processPkgFiles(fileMap, "head", head, normalizeFilePath);
-	processPkgFiles(fileMap, "base", base, normalizeFilePath);
+	processPkgFiles(fileMap, "head", head, normalizeFilePath, stripHash);
+	processPkgFiles(fileMap, "base", base, normalizeFilePath, stripHash);
+	structurallyPairUnmatched(fileMap);
 	const allFiles = Object.values(fileMap);
 	sortFiles(allFiles, sortBy, sortOrder);
 	const [hidden, files] = partionHidden(hideFiles, allFiles);
@@ -23329,17 +23429,17 @@ function generateComment({ headPkgData, basePkgData, sortBy, sortOrder, hideFile
 	const fileRows = [...changed, ...unchangedFiles === "show" ? unchanged : []];
 	const mapFileRow = (file) => [
 		file.label,
-		file.base && file.base.size ? listSizes(displaySizes, (p) => c(byteSize(file.base[p]))) : "—",
-		file.head && file.head.size ? listSizes(displaySizes, (p) => (file.base && file.base[p] ? sup(formatDelta(file.diff[p])) : "") + c(byteSize(file.head[p]))) : "—"
+		file.base && file.base.size ? listSizes(displaySizes, (p) => c$1(byteSize(file.base[p]))) : "—",
+		file.head && file.head.size ? listSizes(displaySizes, (p) => (file.base && file.base[p] ? sup(formatDelta(file.diff[p])) : "") + c$1(byteSize(file.head[p]))) : "—"
 	];
 	const totalRows = [[
 		`${strong("Total")} ${unchangedFiles === "show" ? "" : sub("_(Includes all files)_")}`,
-		listSizes(displaySizes, (p) => c(byteSize(regressionData.base[p]))),
-		listSizes(displaySizes, (p) => sup(formatDelta(regressionData.diff[p])) + c(byteSize(regressionData.head[p])))
+		listSizes(displaySizes, (p) => c$1(byteSize(regressionData.base[p]))),
+		listSizes(displaySizes, (p) => sup(formatDelta(regressionData.diff[p])) + c$1(byteSize(regressionData.head[p])))
 	], ...includeTarball ? [[
 		strong("Tarball size"),
-		c(byteSize(regressionData.base.tarballSize)),
-		sup(formatDelta(regressionData.diff.tarballSize)) + c(byteSize(regressionData.head.tarballSize))
+		c$1(byteSize(regressionData.base.tarballSize)),
+		sup(formatDelta(regressionData.diff.tarballSize)) + c$1(byteSize(regressionData.head.tarballSize))
 	]] : []];
 	const shouldAutoCollapse = autoCollapse && fileRows.length > AUTO_COLLAPSE_THRESHOLD$1;
 	let table;
@@ -23379,7 +23479,7 @@ function generateComment({ headPkgData, basePkgData, sortBy, sortOrder, hideFile
 	] });
 	let unchangedTable = "";
 	if (unchangedFiles === "collapse" && unchanged.length > 0) {
-		unchangedTable = markdownTable([["File", `Size${sizeHeadingLabel}`], ...unchanged.map((file) => [file.label, listSizes(displaySizes, (p) => c(byteSize(file.base[p])))])], { align: ["", "r"] });
+		unchangedTable = markdownTable([["File", `Size${sizeHeadingLabel}`], ...unchanged.map((file) => [file.label, listSizes(displaySizes, (p) => c$1(byteSize(file.base[p])))])], { align: ["", "r"] });
 		unchangedTable = `<details><summary>Unchanged files</summary>\n\n${unchangedTable}\n</details>`;
 	}
 	let hiddenTable = "";
@@ -23390,8 +23490,8 @@ function generateComment({ headPkgData, basePkgData, sortBy, sortOrder, hideFile
 			`After${sizeHeadingLabel}`
 		], ...hidden.map((file) => [
 			file.label,
-			file.base && file.base.size ? listSizes(displaySizes, (p) => c(byteSize(file.base[p]))) : "—",
-			file.head && file.head.size ? listSizes(displaySizes, (p) => (file.base && file.base[p] ? sup(formatDelta(file.diff[p])) : "") + c(byteSize(file.head[p]))) : "—"
+			file.base && file.base.size ? listSizes(displaySizes, (p) => c$1(byteSize(file.base[p]))) : "—",
+			file.head && file.head.size ? listSizes(displaySizes, (p) => (file.base && file.base[p] ? sup(formatDelta(file.diff[p])) : "") + c$1(byteSize(file.head[p]))) : "—"
 		])], { align: [
 			"",
 			"r",
@@ -23419,8 +23519,8 @@ function headOnly({ headPkgData, hideFiles, displaySize, sortBy, sortOrder, auto
 	const sizeHeadingLabel = getSizeLabels(displaySizes);
 	sortFiles(headPkgData.files, sortBy, sortOrder);
 	const [hidden, files] = partionHidden(hideFiles, headPkgData.files);
-	const mapFileRow = (file) => [file.label, listSizes(displaySizes, (p) => c(byteSize(file[p])))];
-	const totalRows = [[strong("Total"), listSizes(displaySizes, (p) => c(byteSize(headPkgData[p])))], ...includeTarball ? [[strong("Tarball size"), c(byteSize(headPkgData.tarballSize))]] : []];
+	const mapFileRow = (file) => [file.label, listSizes(displaySizes, (p) => c$1(byteSize(file[p])))];
+	const totalRows = [[strong("Total"), listSizes(displaySizes, (p) => c$1(byteSize(headPkgData[p])))], ...includeTarball ? [[strong("Tarball size"), c$1(byteSize(headPkgData.tarballSize))]] : []];
 	const shouldAutoCollapse = autoCollapse && files.length > AUTO_COLLAPSE_THRESHOLD;
 	let table;
 	let autoCollapseSection = "";
@@ -23435,7 +23535,7 @@ function headOnly({ headPkgData, hideFiles, displaySize, sortBy, sortOrder, auto
 	], { align: ["", "r"] });
 	let hiddenTable = "";
 	if (hidden.length > 0) {
-		hiddenTable = markdownTable([["File", `Size${sizeHeadingLabel}`], ...hidden.map((file) => [file.label, listSizes(displaySizes, (p) => c(byteSize(file[p])))])], { align: ["", "r"] });
+		hiddenTable = markdownTable([["File", `Size${sizeHeadingLabel}`], ...hidden.map((file) => [file.label, listSizes(displaySizes, (p) => c$1(byteSize(file[p])))])], { align: ["", "r"] });
 		hiddenTable = `<details><summary>Hidden files</summary>\n\n${hiddenTable}\n</details>`;
 	}
 	return import_lib.default`
@@ -23634,8 +23734,51 @@ function matchesPrefix(filePath, prefix) {
 	return filePath.startsWith(`${prefix}/`);
 }
 /**
+* Compute a path relative to the given prefix, prepended with `./`.
+*
+* - For an exact match, returns `./`.
+* - For child paths, returns `./` plus the portion after `prefix/`.
+* - For paths that don't fall under the prefix, returns the original path.
+*
+* @param {string} filePath
+* @param {string} prefix
+* @returns {string}
+*/
+function relativeToPrefix(filePath, prefix) {
+	if (!prefix) return filePath;
+	if (filePath === prefix) return "./";
+	if (filePath.startsWith(`${prefix}/`)) return `./${filePath.slice(prefix.length + 1)}`;
+	return filePath;
+}
+/**
+* Rewrite a file label produced by `build-ref` so its visible text shows
+* `visibleText` while preserving the link href when one is present.
+*
+* Input shape is one of:
+*   - `` `<path>` ``
+*   - `` [`<path>`](<href>) ``
+*
+* Anything else is returned unchanged.
+*
+* @param {string} label
+* @param {string} visibleText
+* @returns {string}
+*/
+function rewriteLabelVisibleText(label, visibleText) {
+	if (typeof label !== "string") return label;
+	const linkMatch = label.match(/^\[`([^`]+)`\]\((.+)\)$/);
+	if (linkMatch) return `[\`${visibleText}\`](${linkMatch[2]})`;
+	if (label.match(/^`([^`]+)`$/)) return `\`${visibleText}\``;
+	return label;
+}
+/**
 * Slice a `pkgData` object down to only the files that fall under `prefix`,
 * recomputing the aggregated size totals (`size`, `sizeGzip`, `sizeBrotli`).
+*
+* Each file in the returned slice gets a `relativePath` (path relative to
+* `prefix`, with a `./` leader) and a `label` rewritten to show that relative
+* path. The original `path` is preserved so cross-section behavior, sorting,
+* and any external `pathsReports` output stay stable.
 *
 * `tarballSize` is package-level and cannot be derived from a subset of files,
 * so it is preserved from the input.
@@ -23645,7 +23788,14 @@ function matchesPrefix(filePath, prefix) {
 * @returns {object} A new pkgData-shaped object.
 */
 function slicePkgData(pkgData, prefix) {
-	const files = pkgData.files.filter((file) => matchesPrefix(file.path, prefix));
+	const files = pkgData.files.filter((file) => matchesPrefix(file.path, prefix)).map((file) => {
+		const relativePath = relativeToPrefix(file.path, prefix);
+		return {
+			...file,
+			relativePath,
+			label: rewriteLabelVisibleText(file.label, relativePath)
+		};
+	});
 	let size = 0;
 	let sizeGzip = 0;
 	let sizeBrotli = 0;
@@ -23760,7 +23910,7 @@ async function buildRef({ checkoutRef, refData, buildCommand, paths }) {
 		pkgData.sizeBrotli += file.sizeBrotli;
 		const isTracked = await isFileTracked(file.path);
 		file.isTracked = isTracked;
-		file.label = isTracked ? link(c(file.path), `${refData.repo.html_url}/blob/${refData.ref}/${file.path}`) : c(file.path);
+		file.label = isTracked ? link(c$1(file.path), `${refData.repo.html_url}/blob/${refData.ref}/${file.path}`) : c$1(file.path);
 	}));
 	info("Cleaning up");
 	await exec("git reset --hard");
@@ -23789,7 +23939,7 @@ function renderHeadOnly(headPkgData, opts, paths) {
 			const tarballSize = headPkgData.tarballs?.[tarballDir]?.tarballSize ?? 0;
 			blocks.push({
 				isTarball: true,
-				content: `${strong("Tarball size")} — ${c(byteSize(tarballSize))}`
+				content: `${strong("Tarball size")} — ${c$1(byteSize(tarballSize))}`
 			});
 		}
 		blocks.push({
@@ -23838,7 +23988,7 @@ function renderRegression(headPkgData, basePkgData, opts, paths) {
 			seenTarballDirs.add(tarballDir);
 			const headTarballSize = headPkgData.tarballs?.[tarballDir]?.tarballSize ?? 0;
 			const baseTarballSize = basePkgData.tarballs?.[tarballDir]?.tarballSize ?? 0;
-			const heading = headTarballSize !== baseTarballSize ? `${strong("Tarball size")} — ${c(byteSize(baseTarballSize))} → ${c(byteSize(headTarballSize))}` : `${strong("Tarball size")} — ${c(byteSize(headTarballSize))}`;
+			const heading = headTarballSize !== baseTarballSize ? `${strong("Tarball size")} — ${c$1(byteSize(baseTarballSize))} → ${c$1(byteSize(headTarballSize))}` : `${strong("Tarball size")} — ${c$1(byteSize(headTarballSize))}`;
 			blocks.push({
 				isTarball: true,
 				content: heading
