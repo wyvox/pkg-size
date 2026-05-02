@@ -152,6 +152,10 @@ function slicePkgData(pkgData, prefix) {
 }
 
 export {
-	parsePathsInput, matchesPrefix, slicePkgData, relativeToPrefix, rewriteLabelVisibleText,
+	parsePathsInput,
+	matchesPrefix,
+	slicePkgData,
+	relativeToPrefix,
+	rewriteLabelVisibleText,
 };
 export default slicePkgData;
