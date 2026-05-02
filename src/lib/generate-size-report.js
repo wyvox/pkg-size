@@ -1,5 +1,4 @@
 import { setOutput } from '@actions/core';
-import byteSize from 'byte-size';
 import { regressionReportTemplate, headOnlyReportTemplate } from '../report-templates/index.js';
 import isBaseDiffFromHead from './is-base-diff-from-head.js';
 import buildRef from './build-ref.js';
@@ -36,10 +35,6 @@ function renderHeadOnly(headPkgData, opts, paths) {
 		title: label,
 		includeTarball: false,
 	}));
-
-	// Append a single tarball-size note since it's a package-level value and
-	// cannot be meaningfully split across paths.
-	sections.push(`**Tarball size:** ${byteSize(headPkgData.tarballSize)}`);
 
 	return `## 📊 Size report\n\n${sections.join('\n\n---\n\n')}`;
 }
@@ -85,14 +80,6 @@ function renderRegression(headPkgData, basePkgData, opts, paths) {
 		title: label,
 		includeTarball: false,
 	}));
-
-	const headTarball = headPkgData.tarballSize;
-	const baseTarball = basePkgData.tarballSize;
-	const tarballDelta = headTarball - baseTarball;
-	const tarballNote = tarballDelta === 0
-		? `**Tarball size:** ${byteSize(headTarball)} (no change)`
-		: `**Tarball size:** ${byteSize(headTarball)} (was ${byteSize(baseTarball)}, ${tarballDelta > 0 ? '+' : '-'}${byteSize(Math.abs(tarballDelta))})`;
-	sections.push(tarballNote);
 
 	return `## 📊 Size report\n\n${sections.join('\n\n---\n\n')}`;
 }

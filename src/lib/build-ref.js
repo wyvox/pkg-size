@@ -61,34 +61,30 @@ async function buildRef({
 		}
 	}
 
-	if (!pkgSizeInstalled) {
-		log.info('Installing pkg-size globally');
-		await exec('npm i -g pkg-size');
-		pkgSizeInstalled = true;
-	}
-
-	log.info('Getting package size');
-	const result = await exec('pkg-size --json', { cwd }).catch((error) => {
-		throw new Error(`Failed to determine package size: ${error.message}`);
-	});
-	log.debug(JSON.stringify(result, null, 4));
-
-	const pkgJsonData = JSON.parse(result.stdout);
-
-	// When paths are specified we measure actual filesystem files rather than
-	// relying on the npm publish file list, so that directories outside the
-	// root package (e.g. workspace sub-packages) are measured correctly.
-	let fileList;
+	let pkgDataBase;
 	if (paths && paths.length > 0) {
 		log.info('Scanning filesystem for specified paths');
-		fileList = await scanDirFiles(paths.map(p => p.prefix), cwd);
+		pkgDataBase = {
+			files: await scanDirFiles(paths.map(p => p.prefix), cwd),
+			tarballSize: 0,
+		};
 	} else {
-		fileList = pkgJsonData.files;
+		if (!pkgSizeInstalled) {
+			log.info('Installing pkg-size globally');
+			await exec('npm i -g pkg-size');
+			pkgSizeInstalled = true;
+		}
+
+		log.info('Getting package size');
+		const result = await exec('pkg-size --json', { cwd }).catch((error) => {
+			throw new Error(`Failed to determine package size: ${error.message}`);
+		});
+		log.debug(JSON.stringify(result, null, 4));
+		pkgDataBase = JSON.parse(result.stdout);
 	}
 
 	const pkgData = {
-		...pkgJsonData,
-		files: fileList,
+		...pkgDataBase,
 		ref: refData,
 		size: 0,
 		sizeGzip: 0,

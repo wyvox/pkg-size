@@ -23759,25 +23759,28 @@ async function buildRef({ checkoutRef, refData, buildCommand, paths }) {
 			info(`Build completed in ${(Date.now() - buildStart) / 1e3}s`);
 		}
 	}
-	if (!pkgSizeInstalled) {
-		info("Installing pkg-size globally");
-		await exec("npm i -g pkg-size");
-		pkgSizeInstalled = true;
-	}
-	info("Getting package size");
-	const result = await exec("pkg-size --json", { cwd }).catch((error) => {
-		throw new Error(`Failed to determine package size: ${error.message}`);
-	});
-	debug(JSON.stringify(result, null, 4));
-	const pkgJsonData = JSON.parse(result.stdout);
-	let fileList;
+	let pkgDataBase;
 	if (paths && paths.length > 0) {
 		info("Scanning filesystem for specified paths");
-		fileList = await scanDirFiles(paths.map((p) => p.prefix), cwd);
-	} else fileList = pkgJsonData.files;
+		pkgDataBase = {
+			files: await scanDirFiles(paths.map((p) => p.prefix), cwd),
+			tarballSize: 0
+		};
+	} else {
+		if (!pkgSizeInstalled) {
+			info("Installing pkg-size globally");
+			await exec("npm i -g pkg-size");
+			pkgSizeInstalled = true;
+		}
+		info("Getting package size");
+		const result = await exec("pkg-size --json", { cwd }).catch((error) => {
+			throw new Error(`Failed to determine package size: ${error.message}`);
+		});
+		debug(JSON.stringify(result, null, 4));
+		pkgDataBase = JSON.parse(result.stdout);
+	}
 	const pkgData = {
-		...pkgJsonData,
-		files: fileList,
+		...pkgDataBase,
 		ref: refData,
 		size: 0,
 		sizeGzip: 0,
@@ -23880,7 +23883,7 @@ function renderHeadOnly(headPkgData, opts, paths) {
 		hideFiles,
 		autoCollapse
 	});
-	const sections = paths.map(({ label, prefix }) => headOnly({
+	return `## 📊 Size report\n\n${paths.map(({ label, prefix }) => headOnly({
 		headPkgData: slicePkgData(headPkgData, prefix),
 		displaySize,
 		sortBy,
@@ -23889,9 +23892,7 @@ function renderHeadOnly(headPkgData, opts, paths) {
 		autoCollapse,
 		title: label,
 		includeTarball: false
-	}));
-	sections.push(`**Tarball size:** ${byteSize(headPkgData.tarballSize)}`);
-	return `## 📊 Size report\n\n${sections.join("\n\n---\n\n")}`;
+	})).join("\n\n---\n\n")}`;
 }
 function renderRegression(headPkgData, basePkgData, opts, paths) {
 	const { displaySize, sortBy, sortOrder, hideFiles, unchangedFiles, ignoreThreshold, autoCollapse, stripHash } = opts;
@@ -23907,7 +23908,7 @@ function renderRegression(headPkgData, basePkgData, opts, paths) {
 		autoCollapse,
 		stripHash
 	});
-	const sections = paths.map(({ label, prefix }) => generateComment({
+	return `## 📊 Size report\n\n${paths.map(({ label, prefix }) => generateComment({
 		headPkgData: slicePkgData(headPkgData, prefix),
 		basePkgData: slicePkgData(basePkgData, prefix),
 		displaySize,
@@ -23920,13 +23921,7 @@ function renderRegression(headPkgData, basePkgData, opts, paths) {
 		stripHash,
 		title: label,
 		includeTarball: false
-	}));
-	const headTarball = headPkgData.tarballSize;
-	const baseTarball = basePkgData.tarballSize;
-	const tarballDelta = headTarball - baseTarball;
-	const tarballNote = tarballDelta === 0 ? `**Tarball size:** ${byteSize(headTarball)} (no change)` : `**Tarball size:** ${byteSize(headTarball)} (was ${byteSize(baseTarball)}, ${tarballDelta > 0 ? "+" : "-"}${byteSize(Math.abs(tarballDelta))})`;
-	sections.push(tarballNote);
-	return `## 📊 Size report\n\n${sections.join("\n\n---\n\n")}`;
+	})).join("\n\n---\n\n")}`;
 }
 async function generateSizeReport({ pr, buildCommand, commentReport, mode, unchangedFiles, hideFiles, sortBy, sortOrder, displaySize, ignoreThreshold, autoCollapse, stripHash, paths }) {
 	startGroup("Build HEAD");
