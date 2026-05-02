@@ -8,8 +8,10 @@ import fs, { constants, existsSync, promises, readFileSync } from "fs";
 import * as path$1 from "path";
 import path from "path";
 import * as events from "events";
+import { promisify } from "util";
 import * as child from "child_process";
 import { setTimeout as setTimeout$1 } from "timers";
+import zlib from "zlib";
 //#region \0rolldown/runtime.js
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3691,7 +3693,7 @@ var require_webidl = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 //#region node_modules/.pnpm/undici@6.23.0/node_modules/undici/lib/web/fetch/util.js
 var require_util$6 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	const { Transform: Transform$2 } = __require("node:stream");
-	const zlib$1 = __require("node:zlib");
+	const zlib$2 = __require("node:zlib");
 	const { redirectStatusSet, referrerPolicySet: referrerPolicyTokens, badPortsSet } = require_constants$2();
 	const { getGlobalOrigin } = require_global$1();
 	const { collectASequenceOfCodePoints, collectAnHTTPQuotedString, removeChars, parseMIMEType } = require_data_url();
@@ -4345,7 +4347,7 @@ var require_util$6 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 					callback();
 					return;
 				}
-				this._inflateStream = (chunk[0] & 15) === 8 ? zlib$1.createInflate(this.#zlibOptions) : zlib$1.createInflateRaw(this.#zlibOptions);
+				this._inflateStream = (chunk[0] & 15) === 8 ? zlib$2.createInflate(this.#zlibOptions) : zlib$2.createInflateRaw(this.#zlibOptions);
 				this._inflateStream.on("data", this.push.bind(this));
 				this._inflateStream.on("end", () => this.push(null));
 				this._inflateStream.on("error", (err) => this.destroy(err));
@@ -9199,7 +9201,7 @@ var require_mock_interceptor = /* @__PURE__ */ __commonJSMin(((exports, module) 
 //#endregion
 //#region node_modules/.pnpm/undici@6.23.0/node_modules/undici/lib/mock/mock-client.js
 var require_mock_client = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-	const { promisify: promisify$1 } = __require("node:util");
+	const { promisify: promisify$2 } = __require("node:util");
 	const Client = require_client();
 	const { buildMockDispatch } = require_mock_utils();
 	const { kDispatches, kMockAgent, kClose, kOriginalClose, kOrigin, kOriginalDispatch, kConnected } = require_mock_symbols();
@@ -9232,7 +9234,7 @@ var require_mock_client = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			return new MockInterceptor(opts, this[kDispatches]);
 		}
 		async [kClose]() {
-			await promisify$1(this[kOriginalClose])();
+			await promisify$2(this[kOriginalClose])();
 			this[kConnected] = 0;
 			this[kMockAgent][Symbols.kClients].delete(this[kOrigin]);
 		}
@@ -9242,7 +9244,7 @@ var require_mock_client = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 //#endregion
 //#region node_modules/.pnpm/undici@6.23.0/node_modules/undici/lib/mock/mock-pool.js
 var require_mock_pool = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-	const { promisify } = __require("node:util");
+	const { promisify: promisify$1 } = __require("node:util");
 	const Pool = require_pool();
 	const { buildMockDispatch } = require_mock_utils();
 	const { kDispatches, kMockAgent, kClose, kOriginalClose, kOrigin, kOriginalDispatch, kConnected } = require_mock_symbols();
@@ -9275,7 +9277,7 @@ var require_mock_pool = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			return new MockInterceptor(opts, this[kDispatches]);
 		}
 		async [kClose]() {
-			await promisify(this[kOriginalClose])();
+			await promisify$1(this[kOriginalClose])();
 			this[kConnected] = 0;
 			this[kMockAgent][Symbols.kClients].delete(this[kOrigin]);
 		}
@@ -11057,7 +11059,7 @@ var require_fetch = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	const { makeNetworkError, makeAppropriateNetworkError, filterResponse, makeResponse, fromInnerResponse } = require_response();
 	const { HeadersList } = require_headers();
 	const { Request, cloneRequest } = require_request();
-	const zlib = __require("node:zlib");
+	const zlib$1 = __require("node:zlib");
 	const { bytesMatch, makePolicyContainer, clonePolicyContainer, requestBadPort, TAOCheck, appendRequestOriginHeader, responseLocationURL, requestCurrentURL, setRequestReferrerPolicyOnRedirect, tryUpgradeRequestToAPotentiallyTrustworthyURL, createOpaqueTimingInfo, appendFetchMetadata, corsCheck, crossOriginResourcePolicyCheck, determineRequestsReferrer, coarsenedSharedCurrentTime, createDeferredPromise, isBlobLike, sameOrigin, isCancelled, isAborted, isErrorLike, fullyReadBody, readableStreamClose, isomorphicEncode, urlIsLocal, urlIsHttpHttpsScheme, urlHasHttpsScheme, clampAndCoarsenConnectionTimingInfo, simpleRangeHeaderValue, buildContentRange, createInflate, extractMimeType } = require_util$6();
 	const { kState, kDispatcher } = require_symbols$3();
 	const assert$5 = __require("node:assert");
@@ -11681,17 +11683,17 @@ var require_fetch = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 						}
 						for (let i = codings.length - 1; i >= 0; --i) {
 							const coding = codings[i].trim();
-							if (coding === "x-gzip" || coding === "gzip") decoders.push(zlib.createGunzip({
-								flush: zlib.constants.Z_SYNC_FLUSH,
-								finishFlush: zlib.constants.Z_SYNC_FLUSH
+							if (coding === "x-gzip" || coding === "gzip") decoders.push(zlib$1.createGunzip({
+								flush: zlib$1.constants.Z_SYNC_FLUSH,
+								finishFlush: zlib$1.constants.Z_SYNC_FLUSH
 							}));
 							else if (coding === "deflate") decoders.push(createInflate({
-								flush: zlib.constants.Z_SYNC_FLUSH,
-								finishFlush: zlib.constants.Z_SYNC_FLUSH
+								flush: zlib$1.constants.Z_SYNC_FLUSH,
+								finishFlush: zlib$1.constants.Z_SYNC_FLUSH
 							}));
-							else if (coding === "br") decoders.push(zlib.createBrotliDecompress({
-								flush: zlib.constants.BROTLI_OPERATION_FLUSH,
-								finishFlush: zlib.constants.BROTLI_OPERATION_FLUSH
+							else if (coding === "br") decoders.push(zlib$1.createBrotliDecompress({
+								flush: zlib$1.constants.BROTLI_OPERATION_FLUSH,
+								finishFlush: zlib$1.constants.BROTLI_OPERATION_FLUSH
 							}));
 							else {
 								decoders.length = 0;
@@ -23516,70 +23518,78 @@ async function isFileTracked(filePath) {
 	return exitCode === 0;
 }
 //#endregion
-//#region src/lib/build-ref.js
-let pkgSizeInstalled = false;
-async function buildRef({ checkoutRef, refData, buildCommand }) {
-	const cwd = process.cwd();
-	info(`Current working directory: ${cwd}`);
-	if (checkoutRef) {
-		info(`Checking out ref '${checkoutRef}'`);
-		await exec(`git checkout -f ${checkoutRef}`);
-	}
-	if (buildCommand !== "false") {
-		if (!buildCommand) {
-			let pkgJson;
-			try {
-				pkgJson = JSON.parse(fs.readFileSync("./package.json"));
-			} catch (error) {
-				warning("Error reading package.json", error);
-			}
-			if (pkgJson && pkgJson.scripts && pkgJson.scripts.build) {
-				info("Build script found in package.json");
-				buildCommand = "npm run build";
-			}
-		}
-		if (buildCommand) {
-			await npmCi({ cwd }).catch((error) => {
-				throw new Error(`Failed to install dependencies:\n${error.message}`);
-			});
-			info(`Running build command: ${buildCommand}`);
-			const buildStart = Date.now();
-			await exec(buildCommand, { cwd }).catch((error) => {
-				throw new Error(`Failed to run build command: ${buildCommand}\n${error.message}`);
-			});
-			info(`Build completed in ${(Date.now() - buildStart) / 1e3}s`);
-		}
-	}
-	if (!pkgSizeInstalled) {
-		info("Installing pkg-size globally");
-		await exec("npm i -g pkg-size");
-		pkgSizeInstalled = true;
-	}
-	info("Getting package size");
-	const result = await exec("pkg-size --json", { cwd }).catch((error) => {
-		throw new Error(`Failed to determine package size: ${error.message}`);
-	});
-	debug(JSON.stringify(result, null, 4));
-	const pkgData = {
-		...JSON.parse(result.stdout),
-		ref: refData,
-		size: 0,
-		sizeGzip: 0,
-		sizeBrotli: 0
+//#region src/lib/scan-dir-files.js
+const gzip = promisify(zlib.gzip);
+const brotliCompress = promisify(zlib.brotliCompress);
+async function measureFile(absPath) {
+	const content = await fs.promises.readFile(absPath);
+	const [gzipBuf, brotliBuf] = await Promise.all([gzip(content), brotliCompress(content)]);
+	return {
+		size: content.length,
+		sizeGzip: gzipBuf.length,
+		sizeBrotli: brotliBuf.length
 	};
-	await Promise.all(pkgData.files.map(async (file) => {
-		pkgData.size += file.size;
-		pkgData.sizeGzip += file.sizeGzip;
-		pkgData.sizeBrotli += file.sizeBrotli;
-		const isTracked = await isFileTracked(file.path);
-		file.isTracked = isTracked;
-		file.label = isTracked ? link(c(file.path), `${refData.repo.html_url}/blob/${refData.ref}/${file.path}`) : c(file.path);
-	}));
-	info("Cleaning up");
-	await exec("git reset --hard");
-	const { stdout: cleanList } = await exec("git clean -dfx");
-	debug(cleanList);
-	return pkgData;
+}
+async function collectFiles(absDir) {
+	const results = [];
+	const entries = await fs.promises.readdir(absDir, { withFileTypes: true });
+	for (const entry of entries) {
+		const fullPath = path.join(absDir, entry.name);
+		if (entry.isDirectory()) results.push(...await collectFiles(fullPath));
+		else if (entry.isFile()) results.push(fullPath);
+	}
+	return results;
+}
+/**
+* Scan the filesystem under the given path prefixes (relative to cwd) and
+* return an array of `{ path, size, sizeGzip, sizeBrotli }` objects.
+* Paths that do not exist are silently skipped. Duplicate files (from
+* overlapping prefixes) are de-duplicated by relative path.
+*
+* @param {string[]} prefixes - Array of path prefixes relative to cwd
+* @param {string} cwd - Base directory
+* @returns {Promise<Array<{path: string, size: number, sizeGzip: number, sizeBrotli: number}>>}
+*/
+async function scanDirFiles(prefixes, cwd) {
+	const seen = /* @__PURE__ */ new Set();
+	const files = [];
+	for (const prefix of prefixes) {
+		const absPrefix = path.resolve(cwd, prefix);
+		const stat = await fs.promises.stat(absPrefix).catch(() => null);
+		if (!stat) continue;
+		const absPaths = stat.isFile() ? [absPrefix] : await collectFiles(absPrefix);
+		await Promise.all(absPaths.map(async (absFile) => {
+			const relPath = path.relative(cwd, absFile).replace(/\\/g, "/");
+			if (seen.has(relPath)) return;
+			seen.add(relPath);
+			const sizes = await measureFile(absFile);
+			files.push({
+				path: relPath,
+				...sizes
+			});
+		}));
+	}
+	return files;
+}
+//#endregion
+//#region src/lib/find-tarball-dir.js
+/**
+* Find the nearest ancestor directory (starting from `prefix` and walking up
+* to the repository root at `cwd`) that contains a `package.json`. Returns
+* the relative path of that directory (e.g. `'packages/pkg-a'` or `'.'`), or
+* `null` if no `package.json` is found.
+*
+* @param {string} prefix - Path prefix relative to cwd
+* @param {string} cwd - Base directory (repository root)
+* @returns {Promise<string | null>}
+*/
+async function findTarballDir(prefix, cwd) {
+	const parts = prefix.split("/").filter(Boolean);
+	for (let i = parts.length; i >= 0; i--) {
+		const dir = parts.slice(0, i).join("/") || ".";
+		if (await fs.promises.access(path.join(cwd, dir, "package.json")).then(() => true, () => false)) return dir;
+	}
+	return null;
 }
 //#endregion
 //#region src/lib/slice-pkg-data.js
@@ -23653,6 +23663,112 @@ function slicePkgData(pkgData, prefix) {
 	};
 }
 //#endregion
+//#region src/lib/build-ref.js
+let pkgSizeInstalled = false;
+async function buildRef({ checkoutRef, refData, buildCommand, paths }) {
+	const cwd = process.cwd();
+	info(`Current working directory: ${cwd}`);
+	if (checkoutRef) {
+		info(`Checking out ref '${checkoutRef}'`);
+		await exec(`git checkout -f ${checkoutRef}`);
+	}
+	if (buildCommand !== "false") {
+		if (!buildCommand) {
+			let pkgJson;
+			try {
+				pkgJson = JSON.parse(fs.readFileSync("./package.json"));
+			} catch (error) {
+				warning("Error reading package.json", error);
+			}
+			if (pkgJson && pkgJson.scripts && pkgJson.scripts.build) {
+				info("Build script found in package.json");
+				buildCommand = "npm run build";
+			}
+		}
+		if (buildCommand) {
+			await npmCi({ cwd }).catch((error) => {
+				throw new Error(`Failed to install dependencies:\n${error.message}`);
+			});
+			info(`Running build command: ${buildCommand}`);
+			const buildStart = Date.now();
+			await exec(buildCommand, { cwd }).catch((error) => {
+				throw new Error(`Failed to run build command: ${buildCommand}\n${error.message}`);
+			});
+			info(`Build completed in ${(Date.now() - buildStart) / 1e3}s`);
+		}
+	}
+	let pkgDataBase;
+	if (paths && paths.length > 0) {
+		info("Scanning filesystem for specified paths");
+		const pathTarballs = {};
+		for (const { prefix } of paths) pathTarballs[prefix] = await findTarballDir(prefix, cwd);
+		const tarballDirs = [...new Set(Object.values(pathTarballs).filter(Boolean))];
+		const tarballs = {};
+		if (tarballDirs.length > 0) {
+			if (!pkgSizeInstalled) {
+				info("Installing pkg-size globally");
+				await exec("npm i -g pkg-size");
+				pkgSizeInstalled = true;
+			}
+			for (const tarballDir of tarballDirs) {
+				info(`Getting package size for ${tarballDir}`);
+				const result = await exec("pkg-size --json", { cwd: path.resolve(cwd, tarballDir) }).catch((error) => {
+					throw new Error(`Failed to determine package size for ${tarballDir}: ${error.message}`);
+				});
+				const pkgSizeData = JSON.parse(result.stdout);
+				tarballs[tarballDir] = {
+					tarballSize: pkgSizeData.tarballSize,
+					files: pkgSizeData.files
+				};
+			}
+		}
+		for (const { prefix } of paths) {
+			const tarballDir = pathTarballs[prefix];
+			if (tarballDir && tarballs[tarballDir]) {
+				if (!tarballs[tarballDir].files.some((file) => matchesPrefix(file.path, prefix))) pathTarballs[prefix] = null;
+			}
+		}
+		pkgDataBase = {
+			files: await scanDirFiles(paths.map((p) => p.prefix), cwd),
+			tarballSize: 0,
+			tarballs,
+			pathTarballs
+		};
+	} else {
+		if (!pkgSizeInstalled) {
+			info("Installing pkg-size globally");
+			await exec("npm i -g pkg-size");
+			pkgSizeInstalled = true;
+		}
+		info("Getting package size");
+		const result = await exec("pkg-size --json", { cwd }).catch((error) => {
+			throw new Error(`Failed to determine package size: ${error.message}`);
+		});
+		debug(JSON.stringify(result, null, 4));
+		pkgDataBase = JSON.parse(result.stdout);
+	}
+	const pkgData = {
+		...pkgDataBase,
+		ref: refData,
+		size: 0,
+		sizeGzip: 0,
+		sizeBrotli: 0
+	};
+	await Promise.all(pkgData.files.map(async (file) => {
+		pkgData.size += file.size;
+		pkgData.sizeGzip += file.sizeGzip;
+		pkgData.sizeBrotli += file.sizeBrotli;
+		const isTracked = await isFileTracked(file.path);
+		file.isTracked = isTracked;
+		file.label = isTracked ? link(c(file.path), `${refData.repo.html_url}/blob/${refData.ref}/${file.path}`) : c(file.path);
+	}));
+	info("Cleaning up");
+	await exec("git reset --hard");
+	const { stdout: cleanList } = await exec("git clean -dfx");
+	debug(cleanList);
+	return pkgData;
+}
+//#endregion
 //#region src/lib/generate-size-report.js
 function renderHeadOnly(headPkgData, opts, paths) {
 	const { displaySize, sortBy, sortOrder, hideFiles, autoCollapse } = opts;
@@ -23664,18 +23780,41 @@ function renderHeadOnly(headPkgData, opts, paths) {
 		hideFiles,
 		autoCollapse
 	});
-	const sections = paths.map(({ label, prefix }) => headOnly({
-		headPkgData: slicePkgData(headPkgData, prefix),
-		displaySize,
-		sortBy,
-		sortOrder,
-		hideFiles,
-		autoCollapse,
-		title: label,
-		includeTarball: false
-	}));
-	sections.push(`**Tarball size:** ${byteSize(headPkgData.tarballSize)}`);
-	return `## 📊 Size report\n\n${sections.join("\n\n---\n\n")}`;
+	const seenTarballDirs = /* @__PURE__ */ new Set();
+	const blocks = [];
+	for (const { label, prefix } of paths) {
+		const tarballDir = headPkgData.pathTarballs?.[prefix] ?? null;
+		if (tarballDir && !seenTarballDirs.has(tarballDir)) {
+			seenTarballDirs.add(tarballDir);
+			const tarballSize = headPkgData.tarballs?.[tarballDir]?.tarballSize ?? 0;
+			blocks.push({
+				isTarball: true,
+				content: `${strong("Tarball size")} — ${c(byteSize(tarballSize))}`
+			});
+		}
+		blocks.push({
+			isTarball: false,
+			content: headOnly({
+				headPkgData: {
+					...slicePkgData(headPkgData, prefix),
+					tarballSize: 0
+				},
+				displaySize,
+				sortBy,
+				sortOrder,
+				hideFiles,
+				autoCollapse,
+				title: label,
+				includeTarball: false
+			})
+		});
+	}
+	let output = "";
+	for (let i = 0; i < blocks.length; i++) {
+		if (i > 0) output += blocks[i - 1].isTarball && !blocks[i].isTarball ? "\n\n" : "\n\n---\n\n";
+		output += blocks[i].content;
+	}
+	return `## 📊 Size report\n\n${output}`;
 }
 function renderRegression(headPkgData, basePkgData, opts, paths) {
 	const { displaySize, sortBy, sortOrder, hideFiles, unchangedFiles, ignoreThreshold, autoCollapse, stripHash } = opts;
@@ -23691,32 +23830,57 @@ function renderRegression(headPkgData, basePkgData, opts, paths) {
 		autoCollapse,
 		stripHash
 	});
-	const sections = paths.map(({ label, prefix }) => generateComment({
-		headPkgData: slicePkgData(headPkgData, prefix),
-		basePkgData: slicePkgData(basePkgData, prefix),
-		displaySize,
-		sortBy,
-		sortOrder,
-		hideFiles,
-		unchangedFiles,
-		ignoreThreshold,
-		autoCollapse,
-		stripHash,
-		title: label,
-		includeTarball: false
-	}));
-	const headTarball = headPkgData.tarballSize;
-	const baseTarball = basePkgData.tarballSize;
-	const tarballDelta = headTarball - baseTarball;
-	const tarballNote = tarballDelta === 0 ? `**Tarball size:** ${byteSize(headTarball)} (no change)` : `**Tarball size:** ${byteSize(headTarball)} (was ${byteSize(baseTarball)}, ${tarballDelta > 0 ? "+" : "-"}${byteSize(Math.abs(tarballDelta))})`;
-	sections.push(tarballNote);
-	return `## 📊 Size report\n\n${sections.join("\n\n---\n\n")}`;
+	const seenTarballDirs = /* @__PURE__ */ new Set();
+	const blocks = [];
+	for (const { label, prefix } of paths) {
+		const tarballDir = headPkgData.pathTarballs?.[prefix] ?? null;
+		if (tarballDir && !seenTarballDirs.has(tarballDir)) {
+			seenTarballDirs.add(tarballDir);
+			const headTarballSize = headPkgData.tarballs?.[tarballDir]?.tarballSize ?? 0;
+			const baseTarballSize = basePkgData.tarballs?.[tarballDir]?.tarballSize ?? 0;
+			const heading = headTarballSize !== baseTarballSize ? `${strong("Tarball size")} — ${c(byteSize(baseTarballSize))} → ${c(byteSize(headTarballSize))}` : `${strong("Tarball size")} — ${c(byteSize(headTarballSize))}`;
+			blocks.push({
+				isTarball: true,
+				content: heading
+			});
+		}
+		blocks.push({
+			isTarball: false,
+			content: generateComment({
+				headPkgData: {
+					...slicePkgData(headPkgData, prefix),
+					tarballSize: 0
+				},
+				basePkgData: {
+					...slicePkgData(basePkgData, prefix),
+					tarballSize: 0
+				},
+				displaySize,
+				sortBy,
+				sortOrder,
+				hideFiles,
+				unchangedFiles,
+				ignoreThreshold,
+				autoCollapse,
+				stripHash,
+				title: label,
+				includeTarball: false
+			})
+		});
+	}
+	let output = "";
+	for (let i = 0; i < blocks.length; i++) {
+		if (i > 0) output += blocks[i - 1].isTarball && !blocks[i].isTarball ? "\n\n" : "\n\n---\n\n";
+		output += blocks[i].content;
+	}
+	return `## 📊 Size report\n\n${output}`;
 }
 async function generateSizeReport({ pr, buildCommand, commentReport, mode, unchangedFiles, hideFiles, sortBy, sortOrder, displaySize, ignoreThreshold, autoCollapse, stripHash, paths }) {
 	startGroup("Build HEAD");
 	const headPkgData = await buildRef({
 		refData: pr.head,
-		buildCommand
+		buildCommand,
+		paths
 	});
 	setOutput("headPkgData", headPkgData);
 	endGroup();
@@ -23747,7 +23911,8 @@ async function generateSizeReport({ pr, buildCommand, commentReport, mode, uncha
 		basePkgData = await buildRef({
 			checkoutRef: baseRef,
 			refData: pr.base,
-			buildCommand
+			buildCommand,
+			paths
 		});
 		endGroup();
 	} else {
