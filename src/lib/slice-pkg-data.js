@@ -53,8 +53,66 @@ function matchesPrefix(filePath, prefix) {
 }
 
 /**
+ * Compute a path relative to the given prefix, prepended with `./`.
+ *
+ * - For an exact match, returns `./`.
+ * - For child paths, returns `./` plus the portion after `prefix/`.
+ * - For paths that don't fall under the prefix, returns the original path.
+ *
+ * @param {string} filePath
+ * @param {string} prefix
+ * @returns {string}
+ */
+function relativeToPrefix(filePath, prefix) {
+	if (!prefix) {
+		return filePath;
+	}
+	if (filePath === prefix) {
+		return './';
+	}
+	if (filePath.startsWith(`${prefix}/`)) {
+		return `./${filePath.slice(prefix.length + 1)}`;
+	}
+	return filePath;
+}
+
+/**
+ * Rewrite a file label produced by `build-ref` so its visible text shows
+ * `visibleText` while preserving the link href when one is present.
+ *
+ * Input shape is one of:
+ *   - `` `<path>` ``
+ *   - `` [`<path>`](<href>) ``
+ *
+ * Anything else is returned unchanged.
+ *
+ * @param {string} label
+ * @param {string} visibleText
+ * @returns {string}
+ */
+function rewriteLabelVisibleText(label, visibleText) {
+	if (typeof label !== 'string') {
+		return label;
+	}
+	const linkMatch = label.match(/^\[`([^`]+)`\]\((.+)\)$/);
+	if (linkMatch) {
+		return `[\`${visibleText}\`](${linkMatch[2]})`;
+	}
+	const codeMatch = label.match(/^`([^`]+)`$/);
+	if (codeMatch) {
+		return `\`${visibleText}\``;
+	}
+	return label;
+}
+
+/**
  * Slice a `pkgData` object down to only the files that fall under `prefix`,
  * recomputing the aggregated size totals (`size`, `sizeGzip`, `sizeBrotli`).
+ *
+ * Each file in the returned slice gets a `relativePath` (path relative to
+ * `prefix`, with a `./` leader) and a `label` rewritten to show that relative
+ * path. The original `path` is preserved so cross-section behavior, sorting,
+ * and any external `pathsReports` output stay stable.
  *
  * `tarballSize` is package-level and cannot be derived from a subset of files,
  * so it is preserved from the input.
@@ -64,7 +122,16 @@ function matchesPrefix(filePath, prefix) {
  * @returns {object} A new pkgData-shaped object.
  */
 function slicePkgData(pkgData, prefix) {
-	const files = pkgData.files.filter(file => matchesPrefix(file.path, prefix));
+	const files = pkgData.files
+		.filter(file => matchesPrefix(file.path, prefix))
+		.map((file) => {
+			const relativePath = relativeToPrefix(file.path, prefix);
+			return {
+				...file,
+				relativePath,
+				label: rewriteLabelVisibleText(file.label, relativePath),
+			};
+		});
 
 	let size = 0;
 	let sizeGzip = 0;
@@ -84,5 +151,7 @@ function slicePkgData(pkgData, prefix) {
 	};
 }
 
-export { parsePathsInput, matchesPrefix, slicePkgData };
+export {
+	parsePathsInput, matchesPrefix, slicePkgData, relativeToPrefix, rewriteLabelVisibleText,
+};
 export default slicePkgData;
