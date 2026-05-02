@@ -32,7 +32,7 @@ function renderHeadOnly(headPkgData, opts, paths) {
 		if (includeTarball) {
 			seenTarballDirs.add(tarballDir);
 		}
-		const tarballSize = tarballDir ? (headPkgData.tarballs?.[tarballDir] ?? 0) : 0;
+		const tarballSize = tarballDir ? (headPkgData.tarballs?.[tarballDir]?.tarballSize ?? 0) : 0;
 		return headOnlyReportTemplate({
 			headPkgData: { ...slicePkgData(headPkgData, prefix), tarballSize },
 			displaySize,
@@ -82,8 +82,8 @@ function renderRegression(headPkgData, basePkgData, opts, paths) {
 		if (includeTarball) {
 			seenTarballDirs.add(tarballDir);
 		}
-		const headTarballSize = tarballDir ? (headPkgData.tarballs?.[tarballDir] ?? 0) : 0;
-		const baseTarballSize = tarballDir ? (basePkgData.tarballs?.[tarballDir] ?? 0) : 0;
+		const headTarballSize = tarballDir ? (headPkgData.tarballs?.[tarballDir]?.tarballSize ?? 0) : 0;
+		const baseTarballSize = tarballDir ? (basePkgData.tarballs?.[tarballDir]?.tarballSize ?? 0) : 0;
 		return regressionReportTemplate({
 			headPkgData: { ...slicePkgData(headPkgData, prefix), tarballSize: headTarballSize },
 			basePkgData: { ...slicePkgData(basePkgData, prefix), tarballSize: baseTarballSize },

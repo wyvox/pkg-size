@@ -23745,102 +23745,6 @@ async function findTarballDir(prefix, cwd) {
 	return null;
 }
 //#endregion
-//#region src/lib/build-ref.js
-let pkgSizeInstalled = false;
-async function buildRef({ checkoutRef, refData, buildCommand, paths }) {
-	const cwd = process.cwd();
-	info(`Current working directory: ${cwd}`);
-	if (checkoutRef) {
-		info(`Checking out ref '${checkoutRef}'`);
-		await exec(`git checkout -f ${checkoutRef}`);
-	}
-	if (buildCommand !== "false") {
-		if (!buildCommand) {
-			let pkgJson;
-			try {
-				pkgJson = JSON.parse(fs.readFileSync("./package.json"));
-			} catch (error) {
-				warning("Error reading package.json", error);
-			}
-			if (pkgJson && pkgJson.scripts && pkgJson.scripts.build) {
-				info("Build script found in package.json");
-				buildCommand = "npm run build";
-			}
-		}
-		if (buildCommand) {
-			await npmCi({ cwd }).catch((error) => {
-				throw new Error(`Failed to install dependencies:\n${error.message}`);
-			});
-			info(`Running build command: ${buildCommand}`);
-			const buildStart = Date.now();
-			await exec(buildCommand, { cwd }).catch((error) => {
-				throw new Error(`Failed to run build command: ${buildCommand}\n${error.message}`);
-			});
-			info(`Build completed in ${(Date.now() - buildStart) / 1e3}s`);
-		}
-	}
-	let pkgDataBase;
-	if (paths && paths.length > 0) {
-		info("Scanning filesystem for specified paths");
-		const pathTarballs = {};
-		for (const { prefix } of paths) pathTarballs[prefix] = await findTarballDir(prefix, cwd);
-		const tarballDirs = [...new Set(Object.values(pathTarballs).filter(Boolean))];
-		const tarballs = {};
-		if (tarballDirs.length > 0) {
-			if (!pkgSizeInstalled) {
-				info("Installing pkg-size globally");
-				await exec("npm i -g pkg-size");
-				pkgSizeInstalled = true;
-			}
-			for (const tarballDir of tarballDirs) {
-				info(`Getting package size for ${tarballDir}`);
-				const result = await exec("pkg-size --json", { cwd: path.resolve(cwd, tarballDir) }).catch((error) => {
-					throw new Error(`Failed to determine package size for ${tarballDir}: ${error.message}`);
-				});
-				tarballs[tarballDir] = JSON.parse(result.stdout).tarballSize;
-			}
-		}
-		pkgDataBase = {
-			files: await scanDirFiles(paths.map((p) => p.prefix), cwd),
-			tarballSize: 0,
-			tarballs,
-			pathTarballs
-		};
-	} else {
-		if (!pkgSizeInstalled) {
-			info("Installing pkg-size globally");
-			await exec("npm i -g pkg-size");
-			pkgSizeInstalled = true;
-		}
-		info("Getting package size");
-		const result = await exec("pkg-size --json", { cwd }).catch((error) => {
-			throw new Error(`Failed to determine package size: ${error.message}`);
-		});
-		debug(JSON.stringify(result, null, 4));
-		pkgDataBase = JSON.parse(result.stdout);
-	}
-	const pkgData = {
-		...pkgDataBase,
-		ref: refData,
-		size: 0,
-		sizeGzip: 0,
-		sizeBrotli: 0
-	};
-	await Promise.all(pkgData.files.map(async (file) => {
-		pkgData.size += file.size;
-		pkgData.sizeGzip += file.sizeGzip;
-		pkgData.sizeBrotli += file.sizeBrotli;
-		const isTracked = await isFileTracked(file.path);
-		file.isTracked = isTracked;
-		file.label = isTracked ? link(c(file.path), `${refData.repo.html_url}/blob/${refData.ref}/${file.path}`) : c(file.path);
-	}));
-	info("Cleaning up");
-	await exec("git reset --hard");
-	const { stdout: cleanList } = await exec("git clean -dfx");
-	debug(cleanList);
-	return pkgData;
-}
-//#endregion
 //#region src/lib/slice-pkg-data.js
 /**
 * Parse the `paths` action input into a list of `{ label, prefix }` entries.
@@ -23912,6 +23816,112 @@ function slicePkgData(pkgData, prefix) {
 	};
 }
 //#endregion
+//#region src/lib/build-ref.js
+let pkgSizeInstalled = false;
+async function buildRef({ checkoutRef, refData, buildCommand, paths }) {
+	const cwd = process.cwd();
+	info(`Current working directory: ${cwd}`);
+	if (checkoutRef) {
+		info(`Checking out ref '${checkoutRef}'`);
+		await exec(`git checkout -f ${checkoutRef}`);
+	}
+	if (buildCommand !== "false") {
+		if (!buildCommand) {
+			let pkgJson;
+			try {
+				pkgJson = JSON.parse(fs.readFileSync("./package.json"));
+			} catch (error) {
+				warning("Error reading package.json", error);
+			}
+			if (pkgJson && pkgJson.scripts && pkgJson.scripts.build) {
+				info("Build script found in package.json");
+				buildCommand = "npm run build";
+			}
+		}
+		if (buildCommand) {
+			await npmCi({ cwd }).catch((error) => {
+				throw new Error(`Failed to install dependencies:\n${error.message}`);
+			});
+			info(`Running build command: ${buildCommand}`);
+			const buildStart = Date.now();
+			await exec(buildCommand, { cwd }).catch((error) => {
+				throw new Error(`Failed to run build command: ${buildCommand}\n${error.message}`);
+			});
+			info(`Build completed in ${(Date.now() - buildStart) / 1e3}s`);
+		}
+	}
+	let pkgDataBase;
+	if (paths && paths.length > 0) {
+		info("Scanning filesystem for specified paths");
+		const pathTarballs = {};
+		for (const { prefix } of paths) pathTarballs[prefix] = await findTarballDir(prefix, cwd);
+		const tarballDirs = [...new Set(Object.values(pathTarballs).filter(Boolean))];
+		const tarballs = {};
+		if (tarballDirs.length > 0) {
+			if (!pkgSizeInstalled) {
+				info("Installing pkg-size globally");
+				await exec("npm i -g pkg-size");
+				pkgSizeInstalled = true;
+			}
+			for (const tarballDir of tarballDirs) {
+				info(`Getting package size for ${tarballDir}`);
+				const result = await exec("pkg-size --json", { cwd: path.resolve(cwd, tarballDir) }).catch((error) => {
+					throw new Error(`Failed to determine package size for ${tarballDir}: ${error.message}`);
+				});
+				const pkgSizeData = JSON.parse(result.stdout);
+				tarballs[tarballDir] = {
+					tarballSize: pkgSizeData.tarballSize,
+					files: pkgSizeData.files
+				};
+			}
+		}
+		for (const { prefix } of paths) {
+			const tarballDir = pathTarballs[prefix];
+			if (tarballDir && tarballs[tarballDir]) {
+				if (!tarballs[tarballDir].files.some((file) => matchesPrefix(file.path, prefix))) pathTarballs[prefix] = null;
+			}
+		}
+		pkgDataBase = {
+			files: await scanDirFiles(paths.map((p) => p.prefix), cwd),
+			tarballSize: 0,
+			tarballs,
+			pathTarballs
+		};
+	} else {
+		if (!pkgSizeInstalled) {
+			info("Installing pkg-size globally");
+			await exec("npm i -g pkg-size");
+			pkgSizeInstalled = true;
+		}
+		info("Getting package size");
+		const result = await exec("pkg-size --json", { cwd }).catch((error) => {
+			throw new Error(`Failed to determine package size: ${error.message}`);
+		});
+		debug(JSON.stringify(result, null, 4));
+		pkgDataBase = JSON.parse(result.stdout);
+	}
+	const pkgData = {
+		...pkgDataBase,
+		ref: refData,
+		size: 0,
+		sizeGzip: 0,
+		sizeBrotli: 0
+	};
+	await Promise.all(pkgData.files.map(async (file) => {
+		pkgData.size += file.size;
+		pkgData.sizeGzip += file.sizeGzip;
+		pkgData.sizeBrotli += file.sizeBrotli;
+		const isTracked = await isFileTracked(file.path);
+		file.isTracked = isTracked;
+		file.label = isTracked ? link(c(file.path), `${refData.repo.html_url}/blob/${refData.ref}/${file.path}`) : c(file.path);
+	}));
+	info("Cleaning up");
+	await exec("git reset --hard");
+	const { stdout: cleanList } = await exec("git clean -dfx");
+	debug(cleanList);
+	return pkgData;
+}
+//#endregion
 //#region src/lib/generate-size-report.js
 function renderHeadOnly(headPkgData, opts, paths) {
 	const { displaySize, sortBy, sortOrder, hideFiles, autoCollapse } = opts;
@@ -23928,7 +23938,7 @@ function renderHeadOnly(headPkgData, opts, paths) {
 		const tarballDir = headPkgData.pathTarballs?.[prefix] ?? null;
 		const includeTarball = Boolean(tarballDir) && !seenTarballDirs.has(tarballDir);
 		if (includeTarball) seenTarballDirs.add(tarballDir);
-		const tarballSize = tarballDir ? headPkgData.tarballs?.[tarballDir] ?? 0 : 0;
+		const tarballSize = tarballDir ? headPkgData.tarballs?.[tarballDir]?.tarballSize ?? 0 : 0;
 		return headOnly({
 			headPkgData: {
 				...slicePkgData(headPkgData, prefix),
@@ -23963,8 +23973,8 @@ function renderRegression(headPkgData, basePkgData, opts, paths) {
 		const tarballDir = headPkgData.pathTarballs?.[prefix] ?? null;
 		const includeTarball = Boolean(tarballDir) && !seenTarballDirs.has(tarballDir);
 		if (includeTarball) seenTarballDirs.add(tarballDir);
-		const headTarballSize = tarballDir ? headPkgData.tarballs?.[tarballDir] ?? 0 : 0;
-		const baseTarballSize = tarballDir ? basePkgData.tarballs?.[tarballDir] ?? 0 : 0;
+		const headTarballSize = tarballDir ? headPkgData.tarballs?.[tarballDir]?.tarballSize ?? 0 : 0;
+		const baseTarballSize = tarballDir ? basePkgData.tarballs?.[tarballDir]?.tarballSize ?? 0 : 0;
 		return generateComment({
 			headPkgData: {
 				...slicePkgData(headPkgData, prefix),

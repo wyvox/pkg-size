@@ -7,6 +7,7 @@ import isFileTracked from './is-file-tracked.js';
 import { c, link } from './markdown.js';
 import scanDirFiles from './scan-dir-files.js';
 import findTarballDir from './find-tarball-dir.js';
+import { matchesPrefix } from './slice-pkg-data.js';
 
 let pkgSizeInstalled = false;
 
@@ -89,7 +90,27 @@ async function buildRef({
 				const result = await exec('pkg-size --json', { cwd: path.resolve(cwd, tarballDir) }).catch((error) => {
 					throw new Error(`Failed to determine package size for ${tarballDir}: ${error.message}`);
 				});
-				tarballs[tarballDir] = JSON.parse(result.stdout).tarballSize;
+				const pkgSizeData = JSON.parse(result.stdout);
+				tarballs[tarballDir] = {
+					tarballSize: pkgSizeData.tarballSize,
+					files: pkgSizeData.files,
+				};
+			}
+		}
+
+		// A prefix is only "in" a tarball if the tarball actually contains files
+		// under that prefix. Without this check, a prefix like `smoke-tests/` would
+		// incorrectly be associated with the root package whose package.json sits
+		// above it in the directory tree.
+		for (const { prefix } of paths) {
+			const tarballDir = pathTarballs[prefix];
+			if (tarballDir && tarballs[tarballDir]) {
+				const inTarball = tarballs[tarballDir].files.some(
+					file => matchesPrefix(file.path, prefix),
+				);
+				if (!inTarball) {
+					pathTarballs[prefix] = null;
+				}
 			}
 		}
 
