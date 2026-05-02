@@ -23725,6 +23725,26 @@ async function scanDirFiles(prefixes, cwd) {
 	return files;
 }
 //#endregion
+//#region src/lib/find-tarball-dir.js
+/**
+* Find the nearest ancestor directory (starting from `prefix` and walking up
+* to the repository root at `cwd`) that contains a `package.json`. Returns
+* the relative path of that directory (e.g. `'packages/pkg-a'` or `'.'`), or
+* `null` if no `package.json` is found.
+*
+* @param {string} prefix - Path prefix relative to cwd
+* @param {string} cwd - Base directory (repository root)
+* @returns {Promise<string | null>}
+*/
+async function findTarballDir(prefix, cwd) {
+	const parts = prefix.split("/").filter(Boolean);
+	for (let i = parts.length; i >= 0; i--) {
+		const dir = parts.slice(0, i).join("/") || ".";
+		if (await fs.promises.access(path.join(cwd, dir, "package.json")).then(() => true, () => false)) return dir;
+	}
+	return null;
+}
+//#endregion
 //#region src/lib/build-ref.js
 let pkgSizeInstalled = false;
 async function buildRef({ checkoutRef, refData, buildCommand, paths }) {
@@ -23762,9 +23782,29 @@ async function buildRef({ checkoutRef, refData, buildCommand, paths }) {
 	let pkgDataBase;
 	if (paths && paths.length > 0) {
 		info("Scanning filesystem for specified paths");
+		const pathTarballs = {};
+		for (const { prefix } of paths) pathTarballs[prefix] = await findTarballDir(prefix, cwd);
+		const tarballDirs = [...new Set(Object.values(pathTarballs).filter(Boolean))];
+		const tarballs = {};
+		if (tarballDirs.length > 0) {
+			if (!pkgSizeInstalled) {
+				info("Installing pkg-size globally");
+				await exec("npm i -g pkg-size");
+				pkgSizeInstalled = true;
+			}
+			for (const tarballDir of tarballDirs) {
+				info(`Getting package size for ${tarballDir}`);
+				const result = await exec("pkg-size --json", { cwd: path.resolve(cwd, tarballDir) }).catch((error) => {
+					throw new Error(`Failed to determine package size for ${tarballDir}: ${error.message}`);
+				});
+				tarballs[tarballDir] = JSON.parse(result.stdout).tarballSize;
+			}
+		}
 		pkgDataBase = {
 			files: await scanDirFiles(paths.map((p) => p.prefix), cwd),
-			tarballSize: 0
+			tarballSize: 0,
+			tarballs,
+			pathTarballs
 		};
 	} else {
 		if (!pkgSizeInstalled) {
@@ -23883,16 +23923,26 @@ function renderHeadOnly(headPkgData, opts, paths) {
 		hideFiles,
 		autoCollapse
 	});
-	return `## 📊 Size report\n\n${paths.map(({ label, prefix }) => headOnly({
-		headPkgData: slicePkgData(headPkgData, prefix),
-		displaySize,
-		sortBy,
-		sortOrder,
-		hideFiles,
-		autoCollapse,
-		title: label,
-		includeTarball: false
-	})).join("\n\n---\n\n")}`;
+	const seenTarballDirs = /* @__PURE__ */ new Set();
+	return `## 📊 Size report\n\n${paths.map(({ label, prefix }) => {
+		const tarballDir = headPkgData.pathTarballs?.[prefix] ?? null;
+		const includeTarball = Boolean(tarballDir) && !seenTarballDirs.has(tarballDir);
+		if (includeTarball) seenTarballDirs.add(tarballDir);
+		const tarballSize = tarballDir ? headPkgData.tarballs?.[tarballDir] ?? 0 : 0;
+		return headOnly({
+			headPkgData: {
+				...slicePkgData(headPkgData, prefix),
+				tarballSize
+			},
+			displaySize,
+			sortBy,
+			sortOrder,
+			hideFiles,
+			autoCollapse,
+			title: label,
+			includeTarball
+		});
+	}).join("\n\n---\n\n")}`;
 }
 function renderRegression(headPkgData, basePkgData, opts, paths) {
 	const { displaySize, sortBy, sortOrder, hideFiles, unchangedFiles, ignoreThreshold, autoCollapse, stripHash } = opts;
@@ -23908,20 +23958,34 @@ function renderRegression(headPkgData, basePkgData, opts, paths) {
 		autoCollapse,
 		stripHash
 	});
-	return `## 📊 Size report\n\n${paths.map(({ label, prefix }) => generateComment({
-		headPkgData: slicePkgData(headPkgData, prefix),
-		basePkgData: slicePkgData(basePkgData, prefix),
-		displaySize,
-		sortBy,
-		sortOrder,
-		hideFiles,
-		unchangedFiles,
-		ignoreThreshold,
-		autoCollapse,
-		stripHash,
-		title: label,
-		includeTarball: false
-	})).join("\n\n---\n\n")}`;
+	const seenTarballDirs = /* @__PURE__ */ new Set();
+	return `## 📊 Size report\n\n${paths.map(({ label, prefix }) => {
+		const tarballDir = headPkgData.pathTarballs?.[prefix] ?? null;
+		const includeTarball = Boolean(tarballDir) && !seenTarballDirs.has(tarballDir);
+		if (includeTarball) seenTarballDirs.add(tarballDir);
+		const headTarballSize = tarballDir ? headPkgData.tarballs?.[tarballDir] ?? 0 : 0;
+		const baseTarballSize = tarballDir ? basePkgData.tarballs?.[tarballDir] ?? 0 : 0;
+		return generateComment({
+			headPkgData: {
+				...slicePkgData(headPkgData, prefix),
+				tarballSize: headTarballSize
+			},
+			basePkgData: {
+				...slicePkgData(basePkgData, prefix),
+				tarballSize: baseTarballSize
+			},
+			displaySize,
+			sortBy,
+			sortOrder,
+			hideFiles,
+			unchangedFiles,
+			ignoreThreshold,
+			autoCollapse,
+			stripHash,
+			title: label,
+			includeTarball
+		});
+	}).join("\n\n---\n\n")}`;
 }
 async function generateSizeReport({ pr, buildCommand, commentReport, mode, unchangedFiles, hideFiles, sortBy, sortOrder, displaySize, ignoreThreshold, autoCollapse, stripHash, paths }) {
 	startGroup("Build HEAD");

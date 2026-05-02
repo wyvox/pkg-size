@@ -1,10 +1,12 @@
 import fs from 'fs';
+import path from 'path';
 import * as log from './log.js';
 import exec from './exec.js';
 import npmCi from './npm-ci.js';
 import isFileTracked from './is-file-tracked.js';
 import { c, link } from './markdown.js';
 import scanDirFiles from './scan-dir-files.js';
+import findTarballDir from './find-tarball-dir.js';
 
 let pkgSizeInstalled = false;
 
@@ -64,9 +66,38 @@ async function buildRef({
 	let pkgDataBase;
 	if (paths && paths.length > 0) {
 		log.info('Scanning filesystem for specified paths');
+
+		// Find which package (tarball) each prefix belongs to
+		const pathTarballs = {};
+		for (const { prefix } of paths) {
+			// eslint-disable-next-line no-await-in-loop
+			pathTarballs[prefix] = await findTarballDir(prefix, cwd);
+		}
+
+		// Run pkg-size once per unique tarball dir to get tarball sizes
+		const tarballDirs = [...new Set(Object.values(pathTarballs).filter(Boolean))];
+		const tarballs = {};
+		if (tarballDirs.length > 0) {
+			if (!pkgSizeInstalled) {
+				log.info('Installing pkg-size globally');
+				await exec('npm i -g pkg-size');
+				pkgSizeInstalled = true;
+			}
+			for (const tarballDir of tarballDirs) {
+				log.info(`Getting package size for ${tarballDir}`);
+				// eslint-disable-next-line no-await-in-loop
+				const result = await exec('pkg-size --json', { cwd: path.resolve(cwd, tarballDir) }).catch((error) => {
+					throw new Error(`Failed to determine package size for ${tarballDir}: ${error.message}`);
+				});
+				tarballs[tarballDir] = JSON.parse(result.stdout).tarballSize;
+			}
+		}
+
 		pkgDataBase = {
 			files: await scanDirFiles(paths.map(p => p.prefix), cwd),
 			tarballSize: 0,
+			tarballs,
+			pathTarballs,
 		};
 	} else {
 		if (!pkgSizeInstalled) {

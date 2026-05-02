@@ -25,16 +25,25 @@ function renderHeadOnly(headPkgData, opts, paths) {
 		});
 	}
 
-	const sections = paths.map(({ label, prefix }) => headOnlyReportTemplate({
-		headPkgData: slicePkgData(headPkgData, prefix),
-		displaySize,
-		sortBy,
-		sortOrder,
-		hideFiles,
-		autoCollapse,
-		title: label,
-		includeTarball: false,
-	}));
+	const seenTarballDirs = new Set();
+	const sections = paths.map(({ label, prefix }) => {
+		const tarballDir = headPkgData.pathTarballs?.[prefix] ?? null;
+		const includeTarball = Boolean(tarballDir) && !seenTarballDirs.has(tarballDir);
+		if (includeTarball) {
+			seenTarballDirs.add(tarballDir);
+		}
+		const tarballSize = tarballDir ? (headPkgData.tarballs?.[tarballDir] ?? 0) : 0;
+		return headOnlyReportTemplate({
+			headPkgData: { ...slicePkgData(headPkgData, prefix), tarballSize },
+			displaySize,
+			sortBy,
+			sortOrder,
+			hideFiles,
+			autoCollapse,
+			title: label,
+			includeTarball,
+		});
+	});
 
 	return `## 📊 Size report\n\n${sections.join('\n\n---\n\n')}`;
 }
@@ -66,20 +75,30 @@ function renderRegression(headPkgData, basePkgData, opts, paths) {
 		});
 	}
 
-	const sections = paths.map(({ label, prefix }) => regressionReportTemplate({
-		headPkgData: slicePkgData(headPkgData, prefix),
-		basePkgData: slicePkgData(basePkgData, prefix),
-		displaySize,
-		sortBy,
-		sortOrder,
-		hideFiles,
-		unchangedFiles,
-		ignoreThreshold,
-		autoCollapse,
-		stripHash,
-		title: label,
-		includeTarball: false,
-	}));
+	const seenTarballDirs = new Set();
+	const sections = paths.map(({ label, prefix }) => {
+		const tarballDir = headPkgData.pathTarballs?.[prefix] ?? null;
+		const includeTarball = Boolean(tarballDir) && !seenTarballDirs.has(tarballDir);
+		if (includeTarball) {
+			seenTarballDirs.add(tarballDir);
+		}
+		const headTarballSize = tarballDir ? (headPkgData.tarballs?.[tarballDir] ?? 0) : 0;
+		const baseTarballSize = tarballDir ? (basePkgData.tarballs?.[tarballDir] ?? 0) : 0;
+		return regressionReportTemplate({
+			headPkgData: { ...slicePkgData(headPkgData, prefix), tarballSize: headTarballSize },
+			basePkgData: { ...slicePkgData(basePkgData, prefix), tarballSize: baseTarballSize },
+			displaySize,
+			sortBy,
+			sortOrder,
+			hideFiles,
+			unchangedFiles,
+			ignoreThreshold,
+			autoCollapse,
+			stripHash,
+			title: label,
+			includeTarball,
+		});
+	});
 
 	return `## 📊 Size report\n\n${sections.join('\n\n---\n\n')}`;
 }
